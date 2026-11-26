@@ -88,6 +88,9 @@
         .pt-safe { padding-top: max(10px, env(safe-area-inset-top)); }
         .pb-safe { padding-bottom: max(10px, env(safe-area-inset-bottom)); }
 
+        /* =========================================================
+           ANIME OGNIE POWITALNE (1.5 SEKUNDY Z LEWEJ I PRAWEJ)
+           ========================================================= */
         .opening-fire-layer {
             position: fixed;
             inset: 0;
@@ -104,175 +107,148 @@
             visibility: visible;
         }
 
-        .fire-bank {
+        .anime-fire-bank {
             position: absolute;
             top: 0;
             bottom: 0;
-            width: 46%;
-            max-width: 240px;
+            width: 52%;
+            max-width: 270px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 24px 0;
+            padding: 16px 0;
         }
 
-        .fire-bank.left { left: 0; transform-origin: left center; }
-        .fire-bank.right { right: 0; transform-origin: right center; }
+        .anime-fire-bank.left {
+            left: -8px;
+            transform-origin: left center;
+        }
 
-        .flame-tongue {
+        .anime-fire-bank.right {
+            right: -8px;
+            transform-origin: right center;
+        }
+
+        .anime-flame-row {
             position: relative;
-            height: 68px;
+            height: 78px;
             width: 100%;
-            margin: -10px 0;
+            margin: -8px 0;
         }
 
-        .flame-shape {
+        /* Ostry kontur płomienia w stylu anime */
+        .anime-outer-flame {
             position: absolute;
             top: 50%;
-            width: 120px;
-            height: 54px;
-            margin-top: -27px;
-            clip-path: polygon(0% 50%, 28% 8%, 62% 22%, 100% 50%, 62% 78%, 28% 92%);
-            border: 2px solid #18181B;
+            width: 158px;
+            height: 64px;
+            margin-top: -32px;
+            clip-path: polygon(0% 50%, 20% 10%, 44% 26%, 68% 4%, 100% 50%, 68% 96%, 44% 74%, 20% 90%);
+            filter: drop-shadow(0 0 8px rgba(255, 120, 0, 0.85));
         }
 
-        .fire-bank.left .flame-shape {
-            left: -24px;
-            background: linear-gradient(90deg, #B91C1C 0%, #EA580C 48%, #FACC15 100%);
-            animation: fireSurgeLeft 1.5s cubic-bezier(0.16, 0.9, 0.25, 1) forwards;
+        .anime-fire-bank.left .anime-outer-flame {
+            left: -26px;
+            background: linear-gradient(90deg, #991B1B 0%, #EA580C 42%, #FACC15 84%, #FEF9C3 100%);
+            animation: animeBlastLeft 1.5s cubic-bezier(0.14, 0.92, 0.24, 1) forwards;
             animation-delay: var(--f-delay, 0ms);
         }
 
-        .fire-bank.right .flame-shape {
-            right: -24px;
-            background: linear-gradient(270deg, #B91C1C 0%, #EA580C 48%, #FACC15 100%);
-            animation: fireSurgeRight 1.5s cubic-bezier(0.16, 0.9, 0.25, 1) forwards;
+        .anime-fire-bank.right .anime-outer-flame {
+            right: -26px;
+            background: linear-gradient(270deg, #991B1B 0%, #EA580C 42%, #FACC15 84%, #FEF9C3 100%);
+            animation: animeBlastRight 1.5s cubic-bezier(0.14, 0.92, 0.24, 1) forwards;
             animation-delay: var(--f-delay, 0ms);
         }
 
-        .flame-core {
+        /* Gorący rdzeń anime */
+        .anime-inner-flame {
             position: absolute;
             top: 50%;
-            width: 72px;
-            height: 26px;
-            margin-top: -13px;
-            clip-path: polygon(0% 50%, 35% 15%, 100% 50%, 35% 85%);
+            width: 104px;
+            height: 30px;
+            margin-top: -15px;
+            clip-path: polygon(0% 50%, 26% 18%, 58% 32%, 100% 50%, 58% 68%, 26% 82%);
+            background: linear-gradient(90deg, #FDE047, #FFFFFF);
+        }
+
+        .anime-fire-bank.left .anime-inner-flame {
+            left: -8px;
+            animation: animeCoreLeft 1.5s cubic-bezier(0.16, 0.9, 0.25, 1) forwards;
+            animation-delay: var(--f-delay, 0ms);
+        }
+
+        .anime-fire-bank.right .anime-inner-flame {
+            right: -8px;
+            animation: animeCoreRight 1.5s cubic-bezier(0.16, 0.9, 0.25, 1) forwards;
+            animation-delay: var(--f-delay, 0ms);
+        }
+
+        /* Iskry anime strzelające z języków ognia */
+        .anime-spark {
+            position: absolute;
+            top: 50%;
+            width: 10px;
+            height: 4px;
+            margin-top: -2px;
+            border-radius: 2px;
             background-color: #FEF08A;
+            box-shadow: 0 0 6px #FACC15;
         }
 
-        .fire-bank.left .flame-core {
-            left: -6px;
-            animation: fireCoreLeft 1.5s ease-out forwards;
+        .anime-fire-bank.left .anime-spark {
+            left: 72px;
+            animation: sparkFlyLeft 1.5s ease-out forwards;
             animation-delay: var(--f-delay, 0ms);
         }
 
-        .fire-bank.right .flame-core {
-            right: -6px;
-            animation: fireCoreRight 1.5s ease-out forwards;
+        .anime-fire-bank.right .anime-spark {
+            right: 72px;
+            animation: sparkFlyRight 1.5s ease-out forwards;
             animation-delay: var(--f-delay, 0ms);
         }
 
-        @keyframes fireSurgeLeft {
-            0% { transform: translateX(-40%) scaleX(0.55) scaleY(0.7); opacity: 0; }
-            22% { transform: translateX(28%) scaleX(1.38) scaleY(1.12); opacity: 1; }
-            55% { transform: translateX(46%) scaleX(1.55) scaleY(0.96); opacity: 0.95; }
-            100% { transform: translateX(-65%) scaleX(0.4) scaleY(0.5); opacity: 0; }
+        @keyframes animeBlastLeft {
+            0% { transform: translateX(-45%) scaleX(0.5) scaleY(0.75); opacity: 0; }
+            20% { transform: translateX(34%) scaleX(1.48) scaleY(1.16); opacity: 1; }
+            52% { transform: translateX(52%) scaleX(1.62) scaleY(0.98); opacity: 0.96; }
+            100% { transform: translateX(-70%) scaleX(0.35) scaleY(0.45); opacity: 0; }
         }
 
-        @keyframes fireSurgeRight {
-            0% { transform: translateX(40%) scaleX(0.55) scaleY(0.7); opacity: 0; }
-            22% { transform: translateX(-28%) scaleX(1.38) scaleY(1.12); opacity: 1; }
-            55% { transform: translateX(-46%) scaleX(1.55) scaleY(0.96); opacity: 0.95; }
-            100% { transform: translateX(65%) scaleX(0.4) scaleY(0.5); opacity: 0; }
+        @keyframes animeBlastRight {
+            0% { transform: translateX(45%) scaleX(0.5) scaleY(0.75); opacity: 0; }
+            20% { transform: translateX(-34%) scaleX(1.48) scaleY(1.16); opacity: 1; }
+            52% { transform: translateX(-52%) scaleX(1.62) scaleY(0.98); opacity: 0.96; }
+            100% { transform: translateX(70%) scaleX(0.35) scaleY(0.45); opacity: 0; }
         }
 
-        @keyframes fireCoreLeft {
-            0% { transform: translateX(-20%) scaleX(0.5); opacity: 0; }
-            25% { transform: translateX(35%) scaleX(1.35); opacity: 1; }
-            100% { transform: translateX(-40%) scaleX(0.3); opacity: 0; }
+        @keyframes animeCoreLeft {
+            0% { transform: translateX(-25%) scaleX(0.45); opacity: 0; }
+            22% { transform: translateX(42%) scaleX(1.42); opacity: 1; }
+            100% { transform: translateX(-45%) scaleX(0.25); opacity: 0; }
         }
 
-        @keyframes fireCoreRight {
-            0% { transform: translateX(20%) scaleX(0.5); opacity: 0; }
-            25% { transform: translateX(-35%) scaleX(1.35); opacity: 1; }
-            100% { transform: translateX(40%) scaleX(0.3); opacity: 0; }
+        @keyframes animeCoreRight {
+            0% { transform: translateX(25%) scaleX(0.45); opacity: 0; }
+            22% { transform: translateX(-42%) scaleX(1.42); opacity: 1; }
+            100% { transform: translateX(45%) scaleX(0.25); opacity: 0; }
         }
 
-        .sneak-pokemon-stage {
-            position: fixed;
-            inset: 0;
-            z-index: 95;
-            pointer-events: none;
-            overflow: hidden;
+        @keyframes sparkFlyLeft {
+            0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
+            30% { transform: translate(55px, -16px) scale(1.2); opacity: 1; }
+            100% { transform: translate(115px, -34px) scale(0.2); opacity: 0; }
         }
 
-        .sneak-sprite-box {
-            position: fixed;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 3px;
-            opacity: 0;
-            pointer-events: none;
+        @keyframes sparkFlyRight {
+            0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
+            30% { transform: translate(-55px, -16px) scale(1.2); opacity: 1; }
+            100% { transform: translate(-115px, -34px) scale(0.2); opacity: 0; }
         }
 
-        .sneak-bubble {
-            background-color: var(--paper-cream);
-            color: var(--ink-black);
-            border: 2.5px solid var(--ink-black);
-            border-radius: 8px;
-            padding: 3px 7px;
-            font-family: var(--font-mono);
-            font-size: 10px;
-            font-weight: 800;
-            box-shadow: 2px 2px 0px var(--ink-black);
-            white-space: nowrap;
-        }
-
-        .sneak-sprite-box.from-left {
-            left: -74px;
-            bottom: 84px;
-            animation: sneakAcrossLeft 4.2s cubic-bezier(0.22, 0.9, 0.3, 1) forwards;
-        }
-
-        .sneak-sprite-box.from-right {
-            right: -74px;
-            bottom: 132px;
-            animation: sneakAcrossRight 4.2s cubic-bezier(0.22, 0.9, 0.3, 1) forwards;
-        }
-
-        .sneak-sprite-box.from-top {
-            top: -74px;
-            left: 24px;
-            animation: sneakPeekTop 4.2s cubic-bezier(0.22, 0.9, 0.3, 1) forwards;
-        }
-
-        @keyframes sneakAcrossLeft {
-            0% { transform: translateX(0) translateY(0) rotate(-4deg); opacity: 0; }
-            14% { transform: translateX(82px) translateY(-6px) rotate(3deg); opacity: 1; }
-            32% { transform: translateX(130px) translateY(2px) rotate(-3deg); opacity: 1; }
-            55% { transform: translateX(195px) translateY(-8px) rotate(4deg); opacity: 1; }
-            82% { transform: translateX(255px) translateY(0px) rotate(-2deg); opacity: 0.9; }
-            100% { transform: translateX(350px) translateY(-4px) rotate(0deg); opacity: 0; }
-        }
-
-        @keyframes sneakAcrossRight {
-            0% { transform: translateX(0) translateY(0) rotate(4deg); opacity: 0; }
-            14% { transform: translateX(-82px) translateY(-6px) rotate(-3deg); opacity: 1; }
-            32% { transform: translateX(-130px) translateY(2px) rotate(3deg); opacity: 1; }
-            55% { transform: translateX(-195px) translateY(-8px) rotate(-4deg); opacity: 1; }
-            82% { transform: translateX(-255px) translateY(0px) rotate(2deg); opacity: 0.9; }
-            100% { transform: translateX(-350px) translateY(-4px) rotate(0deg); opacity: 0; }
-        }
-
-        @keyframes sneakPeekTop {
-            0% { transform: translateY(0) rotate(-6deg); opacity: 0; }
-            18% { transform: translateY(84px) rotate(4deg); opacity: 1; }
-            45% { transform: translateY(72px) translateX(22px) rotate(-4deg); opacity: 1; }
-            72% { transform: translateY(88px) translateX(-12px) rotate(3deg); opacity: 1; }
-            100% { transform: translateY(-30px) rotate(0deg); opacity: 0; }
-        }
-
+        /* =========================================================
+           NAGŁÓWEK POKÉDEXA
+           ========================================================= */
         .dex-header {
             background-color: var(--dex-red);
             border-bottom: var(--border-w) solid var(--ink-black);
@@ -322,21 +298,16 @@
             transform: rotate(-25deg);
         }
 
-        .pokedex-shell.is-scanning .lens-blue {
-            animation: lensPulse 0.7s infinite alternate;
-            background-color: #67E8F9;
-        }
-
         .mini-leds {
             display: flex;
             align-items: center;
             gap: 5px;
-            margin-top: 2px;
+            margin-bottom: 2px;
         }
 
         .mini-led {
-            width: 10px;
-            height: 10px;
+            width: 9px;
+            height: 9px;
             border-radius: 999px;
             border: 2px solid var(--ink-black);
         }
@@ -356,7 +327,7 @@
             white-space: nowrap;
         }
 
-        .trainer-pill-btn {
+        .account-pill {
             margin-top: 4px;
             display: inline-flex;
             align-items: center;
@@ -370,27 +341,14 @@
             font-weight: 800;
             cursor: pointer;
             box-shadow: 2px 2px 0px var(--ink-black);
-            max-width: 215px;
         }
 
-        .trainer-pill-btn:active {
-            transform: translate(1px, 1px);
-            box-shadow: 1px 1px 0px var(--ink-black);
-        }
-
-        .trainer-dot {
-            width: 9px;
-            height: 9px;
+        .account-dot {
+            width: 8px;
+            height: 8px;
             border-radius: 999px;
-            border: 1.5px solid var(--ink-black);
-            flex-shrink: 0;
-            background-color: #2E7D32;
-        }
-
-        .trainer-pill-text {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            background-color: #EF4444;
+            border: 1px solid var(--ink-black);
         }
 
         .tcg-btn {
@@ -414,7 +372,6 @@
             user-select: none;
         }
 
-        .tcg-btn:hover { background-color: #FFFDF7; }
         .tcg-btn:active {
             transform: translate(2.5px, 2.5px);
             box-shadow: 0.5px 0.5px 0px var(--ink-black);
@@ -426,71 +383,38 @@
             box-shadow: 2px 2px 0px var(--ink-black);
         }
 
-        .tcg-btn.sm:active {
-            transform: translate(1.5px, 1.5px);
-            box-shadow: 0.5px 0.5px 0px var(--ink-black);
-        }
-
         .tcg-btn.primary {
             background-color: var(--led-amber);
             color: var(--ink-black);
-            font-size: 13.5px;
-            padding: 12px 14px;
+            font-size: 13px;
+            padding: 11px 13px;
         }
 
-        .tcg-btn.primary:hover { background-color: #FFD54F; }
-        .tcg-btn.success { background-color: #C8E6C9; color: #1B5E20; }
-        .tcg-btn.is-hidden-installed { display: none !important; }
-
-        .paper-panel {
-            background-color: var(--paper-cream);
-            color: var(--ink-black);
-            border: var(--border-w) solid var(--ink-black);
-            border-radius: 10px;
-            box-shadow: var(--shadow-hard);
-            padding: 12px;
+        .tcg-btn.is-hidden-installed {
+            display: none !important;
         }
 
-        .paper-panel.warm { background-color: var(--paper-warm); }
-
-        .mono {
-            font-family: var(--font-mono);
-            font-variant-numeric: tabular-nums;
-        }
-
+        /* =========================================================
+           GŁÓWNA TREŚĆ I ZAKŁADKI
+           ========================================================= */
         .dex-main {
             flex: 1;
             padding: 12px;
             display: flex;
             flex-direction: column;
             gap: 12px;
-            padding-bottom: 40px;
+            padding-bottom: 84px;
         }
 
-        .category-chips {
+        .tab-view {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .tab-view.active {
             display: flex;
-            gap: 6px;
-            overflow-x: auto;
-            padding-bottom: 2px;
-            scrollbar-width: none;
         }
-
-        .category-chips::-webkit-scrollbar { display: none; }
-
-        .cat-chip {
-            flex-shrink: 0;
-            padding: 6px 10px;
-            border-radius: 7px;
-            border: 2px solid var(--ink-black);
-            background-color: var(--paper-warm);
-            color: var(--ink-black);
-            font-size: 11px;
-            font-weight: 800;
-            cursor: pointer;
-            box-shadow: 2px 2px 0px var(--ink-black);
-        }
-
-        .cat-chip.active { background-color: var(--led-amber); }
 
         .viewfinder-outer {
             background-color: #141417;
@@ -506,7 +430,7 @@
             justify-content: space-between;
             gap: 6px;
             margin-bottom: 8px;
-            font-size: 11px;
+            font-size: 10.5px;
             font-weight: 800;
             color: #E4E4E7;
         }
@@ -515,10 +439,10 @@
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            padding: 2px 7px;
-            border-radius: 4px;
+            padding: 2px 8px;
+            border-radius: 999px;
             border: 1.5px solid #000;
-            background-color: #27272A;
+            background-color: #18181B;
             color: #FACC15;
             font-family: var(--font-mono);
             font-size: 10px;
@@ -528,7 +452,7 @@
             width: 7px;
             height: 7px;
             border-radius: 999px;
-            background-color: #4ADE80;
+            background-color: #22C55E;
         }
 
         .card-frame-stage {
@@ -556,12 +480,11 @@
 
         .centering-grid {
             position: absolute;
-            inset: 0;
+            inset: 8px;
             pointer-events: none;
             z-index: 4;
             border: 2px dashed rgba(250, 204, 21, 0.78);
             border-radius: 7px;
-            margin: 8px;
         }
 
         .centering-grid::before {
@@ -592,7 +515,6 @@
             border-style: solid;
             pointer-events: none;
             z-index: 5;
-            animation: cornerPulse 1.8s ease-in-out infinite;
         }
 
         .corner-mark.tl { top: 4px; left: 4px; border-width: 3px 0 0 3px; border-top-left-radius: 5px; }
@@ -605,89 +527,60 @@
             left: 4%;
             right: 4%;
             height: 3px;
-            background-color: #FF2A4B;
-            box-shadow: 0 0 8px #FF2A4B;
+            background: linear-gradient(90deg, transparent, #FF2A4B, #FACC15, #FF2A4B, transparent);
             z-index: 6;
             pointer-events: none;
-            top: 8%;
-            opacity: 0.6;
-            animation: scanSweepIdle 3.2s ease-in-out infinite;
+            top: 10%;
+            animation: scanSweep 2.8s ease-in-out infinite;
         }
 
-        .pokedex-shell.is-scanning .scan-beam {
-            background-color: #29B6F6;
-            box-shadow: 0 0 12px #29B6F6;
-            height: 4px;
-            opacity: 1;
-            animation: scanSweepActive 1.1s ease-in-out infinite;
+        @keyframes scanSweep {
+            0%, 100% { top: 10%; }
+            50% { top: 88%; }
         }
 
-        .analyzing-overlay {
-            position: absolute;
-            inset: 0;
-            background-color: rgba(16, 18, 22, 0.92);
-            z-index: 10;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
+        .placeholder-box {
+            padding: 14px;
             text-align: center;
             color: var(--paper-cream);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             gap: 10px;
+            z-index: 3;
         }
 
-        .analyzing-overlay.show { display: flex; }
-
-        .pokeball-spinner {
-            width: 42px;
-            height: 42px;
-            border-radius: 999px;
-            border: 3px solid #F7F4EB;
-            background: linear-gradient(to bottom, #DC0A2D 0 46%, #18181B 46% 54%, #F7F4EB 54% 100%);
-            position: relative;
-            animation: spinBall 0.85s linear infinite;
+        .placeholder-box h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 900;
+            color: #FACC15;
+            letter-spacing: -0.02em;
         }
 
-        .pokeball-spinner::after {
-            content: "";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 12px;
-            height: 12px;
-            border-radius: 999px;
-            background-color: #F7F4EB;
-            border: 2.5px solid #18181B;
-            transform: translate(-50%, -50%);
+        .placeholder-box p {
+            margin: 0;
+            font-size: 12px;
+            color: #E4E4E7;
+            line-height: 1.38;
         }
 
-        .file-upload-bar {
+        .gallery-strip {
             margin-top: 10px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 8px;
-            background-color: #222227;
-            border: 2px solid #3F3F46;
+            background-color: #202026;
+            border: 2px solid #3A3A44;
             border-radius: 8px;
-            padding: 8px 10px;
+            padding: 7px 10px;
             color: #F4F4F5;
-            font-size: 12px;
-        }
-
-        .file-name-label {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            color: #D4D4D8;
             font-size: 11.5px;
-            flex: 1;
-            text-align: right;
         }
 
         .not-card-banner {
-            background-color: #DC0A2D;
+            background-color: #991B1B;
             color: #FFFDF7;
             border: var(--border-w) solid var(--ink-black);
             border-radius: 10px;
@@ -696,115 +589,139 @@
             text-align: center;
             font-weight: 900;
             font-size: 15px;
-            letter-spacing: 0.03em;
+            letter-spacing: 0.04em;
             text-transform: uppercase;
-            animation: cardReveal 0.22s ease both;
         }
 
-        .report-card { animation: cardReveal 0.3s cubic-bezier(0.2, 0.95, 0.3, 1.08) both; }
-
-        .price-highlight-box {
-            padding: 11px;
-            border-radius: 8px;
-            border: var(--border-w) solid var(--ink-black);
-            background-color: var(--crt-bg);
-            color: var(--crt-text);
-            box-shadow: inset 0 0 0 2px #2D333B;
-        }
-
-        .price-main-val {
-            font-size: 18px;
-            font-weight: 900;
-            color: #FACC15;
-            margin-top: 2px;
-        }
-
-        .options-drawer {
-            display: none;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .options-drawer.open {
-            display: flex;
-            animation: cardReveal 0.2s ease both;
-        }
-
-        .opt-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            font-size: 12px;
-            font-weight: 800;
-        }
-
-        .opt-input {
-            padding: 5px 8px;
-            border-radius: 6px;
-            border: 2px solid var(--ink-black);
+        .paper-panel {
             background-color: var(--paper-cream);
             color: var(--ink-black);
+            border: var(--border-w) solid var(--ink-black);
+            border-radius: 10px;
+            box-shadow: var(--shadow-hard);
+            padding: 12px;
+        }
+
+        .paper-panel.warm { background-color: var(--paper-warm); }
+
+        .crt-box {
+            background-color: var(--crt-bg);
+            color: var(--crt-text);
+            border: var(--border-w) solid var(--ink-black);
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+
+        .index-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 9px;
+        }
+
+        .index-item {
+            background-color: var(--paper-warm);
+            border: 2.5px solid var(--ink-black);
+            border-radius: 8px;
+            padding: 9px;
+            box-shadow: 2px 2px 0px var(--ink-black);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .cat-row {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+        }
+
+        .cat-pill {
+            flex-shrink: 0;
+            padding: 5px 9px;
+            border-radius: 6px;
+            border: 2px solid var(--ink-black);
+            background-color: var(--paper-warm);
+            color: var(--ink-black);
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .cat-pill.active {
+            background-color: var(--led-amber);
+        }
+
+        /* Dolny pasek 6 zakładek */
+        .bottom-tabs-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 460px;
+            background-color: var(--dex-red);
+            border-top: var(--border-w) solid var(--ink-black);
+            padding: 6px 8px max(8px, env(safe-area-inset-bottom));
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 5px;
+            z-index: 60;
+        }
+
+        .tab-btn {
+            background-color: var(--paper-cream);
+            color: var(--ink-black);
+            border: 2.5px solid var(--ink-black);
+            border-radius: 8px;
+            padding: 5px 2px;
+            box-shadow: 2px 2px 0px var(--ink-black);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
             font-family: var(--font-ui);
-            font-size: 12px;
-            font-weight: 700;
+            font-size: 9.5px;
+            font-weight: 900;
+            text-transform: uppercase;
+            line-height: 1.05;
+        }
+
+        .tab-btn.active {
+            background-color: var(--led-amber);
+            transform: translateY(-2px);
+        }
+
+        .tab-icon {
+            font-size: 13px;
+            line-height: 1;
         }
 
         .is-hidden { display: none !important; }
-
-        @keyframes cornerPulse {
-            0%, 100% { opacity: 0.75; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.06); }
-        }
-
-        @keyframes scanSweepIdle {
-            0%, 100% { top: 10%; }
-            50% { top: 88%; }
-        }
-
-        @keyframes scanSweepActive {
-            0%, 100% { top: 6%; }
-            50% { top: 92%; }
-        }
-
-        @keyframes spinBall {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        @keyframes cardReveal {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes lensPulse {
-            from { transform: scale(1); }
-            to { transform: scale(1.07); }
-        }
     </style>
 </head>
 <body>
+    <!-- Anime ognie powitalne (1.5s) -->
     <div id="openingFireLayer" class="opening-fire-layer active" aria-hidden="true">
-        <div class="fire-bank left">
-            <div class="flame-tongue" style="--f-delay: 0ms;"><div class="flame-shape"></div><div class="flame-core"></div></div>
-            <div class="flame-tongue" style="--f-delay: 70ms;"><div class="flame-shape"></div><div class="flame-core"></div></div>
-            <div class="flame-tongue" style="--f-delay: 140ms;"><div class="flame-shape"></div><div class="flame-core"></div></div>
-            <div class="flame-tongue" style="--f-delay: 90ms;"><div class="flame-shape"></div><div class="flame-core"></div></div>
-            <div class="flame-tongue" style="--f-delay: 160ms;"><div class="flame-shape"></div><div class="flame-core"></div></div>
-            <div class="flame-tongue" style="--f-delay: 50ms;"><div class="flame-shape"></div><div class="flame-core"></div></div>
+        <div class="anime-fire-bank left">
+            <div class="anime-flame-row" style="--f-delay: 0ms;"><div class="anime-outer-flame"></div><div class="anime-inner-flame"></div><div class="anime-spark"></div></div>
+            <div class="anime-flame-row" style="--f-delay: 60ms;"><div class="anime-outer-flame"></div><div class="anime-inner-flame"></div><div class="anime-spark"></div></div>
+            <div class="anime-flame-row" style="--f-delay: 120ms;"><div class="anime-outer-flame"></div><div class="anime-inner-flame"></div><div class="anime-spark"></div></div>
+            <div class="anime-flame-row" style="--f-delay: 80ms;"><div class="anime-outer-flame"></div><div class="anime-inner-flame"></div><div class="anime-spark"></div></div>
+            <div class="anime-flame-row" style="--f-delay: 140ms;"><div class="anime-outer-flame"></div><div class="anime-inner-flame"></div><div class="anime-spark"></div></div>
+            <div class="anime-flame-row" style="--f-delay: 40ms;"><div class="anime-outer-flame"></div><div class="anime-inner-flame"></div><div class="anime-spark"></div></div>
         </div>
-        <div class="fire-bank right">
-            <div class="flame-tongue" style="--f-delay: 20ms;"><div class="flame-shape"></div><div class="flame-core"></div></div>
-            <div class="flame-tongue" style="--f-delay: 85ms;"><div class="flame-shape"></div><div class="flame-core"></div></div>
-            <div class="flame-tongue" style="--f-delay: 150ms;"><div class="flame-shape"></div><div class="flame-core"></div></div>
-            <div class="flame-tongue" style="--f-delay: 65ms;"><div class="flame-shape"></div><div class="flame-core"></div></div>
-            <div class="flame-tongue" style="--f-delay: 130ms;"><div class="flame-shape"></div><div class="flame-core"></div></div>
-            <div class="flame-tongue" style="--f-delay: 40ms;"><div class="flame-shape"></div><div class="flame-core"></div></div>
+        <div class="anime-fire-bank right">
+            <div class="anime-flame-row" style="--f-delay: 20ms;"><div class="anime-outer-flame"></div><div class="anime-inner-flame"></div><div class="anime-spark"></div></div>
+            <div class="anime-flame-row" style="--f-delay: 75ms;"><div class="anime-outer-flame"></div><div class="anime-inner-flame"></div><div class="anime-spark"></div></div>
+            <div class="anime-flame-row" style="--f-delay: 130ms;"><div class="anime-outer-flame"></div><div class="anime-inner-flame"></div><div class="anime-spark"></div></div>
+            <div class="anime-flame-row" style="--f-delay: 55ms;"><div class="anime-outer-flame"></div><div class="anime-inner-flame"></div><div class="anime-spark"></div></div>
+            <div class="anime-flame-row" style="--f-delay: 110ms;"><div class="anime-outer-flame"></div><div class="anime-inner-flame"></div><div class="anime-spark"></div></div>
+            <div class="anime-flame-row" style="--f-delay: 35ms;"><div class="anime-outer-flame"></div><div class="anime-inner-flame"></div><div class="anime-spark"></div></div>
         </div>
     </div>
-
-    <div id="sneakPokemonStage" class="sneak-pokemon-stage" aria-hidden="true"></div>
 
     <div class="app-stage">
         <div id="pokedexShell" class="pokedex-shell pt-safe pb-safe">
@@ -813,242 +730,296 @@
                     <div class="dex-leds-brand">
                         <div class="lens-blue" aria-hidden="true"></div>
                         <div>
-                            <h1 class="dex-title">Skaner Pokemonów</h1>
                             <div class="mini-leds" aria-hidden="true">
                                 <span class="mini-led red"></span>
                                 <span class="mini-led amber"></span>
                                 <span class="mini-led green"></span>
                             </div>
-                            <button id="trainerPillBtn" type="button" class="trainer-pill-btn">
-                                <span class="trainer-dot"></span>
-                                <span id="trainerPillText" class="trainer-pill-text">Konto: Gość</span>
+                            <h1 class="dex-title">Skaner Pokemonów</h1>
+                            <button id="accountPillBtn" type="button" class="account-pill">
+                                <span class="account-dot"></span>
+                                <span id="accountPillLabel">Gość • Załóż konto</span>
                             </button>
                         </div>
                     </div>
 
-                    <div style="display:flex; gap:6px; align-items:center;">
-                        <button id="installPwaBtn" type="button" class="tcg-btn sm success">POBIERZ NA TELEFON</button>
-                        <button id="optionsToggleBtn" type="button" class="tcg-btn sm">Opcje</button>
-                    </div>
-                </div>
-
-                <div id="optionsDrawer" class="paper-panel warm options-drawer">
-                    <div class="opt-row">
-                        <label for="volumeSlider">Głośność dźwięków</label>
-                        <input id="volumeSlider" type="range" min="0" max="100" value="40">
-                    </div>
-                    <div class="opt-row">
-                        <label for="currencySelect">Waluta</label>
-                        <select id="currencySelect" class="opt-input">
-                            <option value="PLN">PLN</option>
-                            <option value="EUR">EUR</option>
-                            <option value="USD">USD</option>
-                        </select>
-                    </div>
-                    <div class="opt-row">
-                        <label for="gmailAccountInput">Konto Gmail</label>
-                        <input id="gmailAccountInput" type="email" class="opt-input" placeholder="twoj@gmail.com">
-                    </div>
-                    <div id="installHelpBox" class="is-hidden" style="font-size:11px; line-height:1.35; background:#F7F4EB; border:2px solid #18181B; border-radius:7px; padding:7px;">
-                        <div id="installHelpText">Kliknij menu przeglądarki (⋮ lub Udostępnij) i wybierz „Dodaj do ekranu głównego”.</div>
-                        <button id="confirmInstalledBtn" type="button" class="tcg-btn sm" style="margin-top:6px;">Ukryj — mam już zainstalowane</button>
-                    </div>
+                    <button id="installPwaBtn" type="button" class="tcg-btn primary">POBIERZ NA TELEFON</button>
                 </div>
             </header>
 
             <main class="dex-main">
-                <div id="categoryChips" class="category-chips" role="tablist" aria-label="Kategorie kart">
-                    <button type="button" class="cat-chip active" data-cat="all">Wszystkie</button>
-                    <button type="button" class="cat-chip" data-cat="holo-ex">Holo / EX</button>
-                    <button type="button" class="cat-chip" data-cat="v-vmax">V / VMAX</button>
-                    <button type="button" class="cat-chip" data-cat="trainers">Trenerzy / Energie</button>
-                </div>
-
-                <section class="viewfinder-outer">
-                    <div class="viewfinder-topbar">
-                        <span class="status-badge"><span class="status-dot"></span><span id="camModeBadge">TYŁ</span></span>
-                        <span id="scanHintTop" class="mono" style="font-size:10px; color:#D4D4D8;">RAMKA 63×88 MM</span>
-                    </div>
-
-                    <div class="card-frame-stage">
-                        <video id="cameraVideo" playsinline autoplay muted class="is-hidden"></video>
-                        <img id="capturedPreviewImg" alt="Podgląd skanu" class="preview-media is-hidden">
-
-                        <div id="cameraPlaceholder" style="padding:14px; text-align:center; color:#F7F4EB; font-size:12px; z-index:3;">
-                            Włącz kamerę albo wgraj zdjęcie karty Pokémon.
+                <!-- 1. ZAKŁADKA: SKANER -->
+                <section id="view-scanner" class="tab-view active">
+                    <div class="viewfinder-outer">
+                        <div class="viewfinder-topbar">
+                            <span class="mono">63×88 MM • <span id="topCurrencyBadge">PLN</span> &amp; PSA</span>
+                            <span class="status-badge"><span class="status-dot"></span><span id="scannerStateLabel">GOTOWY</span></span>
                         </div>
 
-                        <div id="centeringGrid" class="centering-grid"></div>
-                        <div class="corner-mark tl"></div>
-                        <div class="corner-mark tr"></div>
-                        <div class="corner-mark bl"></div>
-                        <div class="corner-mark br"></div>
-                        <div class="scan-beam"></div>
+                        <div class="card-frame-stage">
+                            <video id="cameraVideo" playsinline autoplay muted class="is-hidden"></video>
+                            <img id="previewImg" alt="Podgląd karty" class="preview-media is-hidden">
 
-                        <div id="analyzingOverlay" class="analyzing-overlay">
-                            <div class="pokeball-spinner"></div>
-                            <div id="analyzingTitle" style="font-weight:900; font-size:13px;">ANALIZA KADRU...</div>
-                            <div id="analyzingSub" style="font-size:11px; color:#D4D4D8;">Sprawdzam, czy w ramce jest karta Pokémon</div>
+                            <div id="cameraIdleOverlay" class="placeholder-box">
+                                <h2>TCG 63×88</h2>
+                                <p>Ustaw kartę w ramce lub wgraj zdjęcie z galerii, aby sprawdzić cenę, stan PSA i autentyczność.</p>
+                                <button id="enableCameraBtn" type="button" class="tcg-btn primary sm">WŁĄCZ KAMERĘ</button>
+                            </div>
+
+                            <div class="centering-grid"></div>
+                            <div class="corner-mark tl"></div>
+                            <div class="corner-mark tr"></div>
+                            <div class="corner-mark bl"></div>
+                            <div class="corner-mark br"></div>
+                            <div class="scan-beam"></div>
+                        </div>
+
+                        <div class="gallery-strip">
+                            <button id="galleryUploadBtn" type="button" class="tcg-btn sm">WGRAJ Z GALERII</button>
+                            <span id="selectedFileText" style="color:#D4D4D8;">Brak pliku</span>
+                            <input id="galleryInput" type="file" accept="image/*" class="is-hidden">
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;">
+                            <button id="scanCardBtn" type="button" class="tcg-btn primary">SKANUJ KARTĘ</button>
+                            <button id="switchCamBtn" type="button" class="tcg-btn">KAMERKA PRZÓD/TYŁ</button>
                         </div>
                     </div>
 
-                    <div style="display:grid; grid-template-columns:1fr auto; gap:8px; margin-top:10px;">
-                        <button id="scanCardBtn" type="button" class="tcg-btn primary">SKANUJ KARTĘ</button>
-                        <button id="switchCameraBtn" type="button" class="tcg-btn">Kamerka Przód/Tył</button>
-                    </div>
+                    <div id="notPokemonAlert" class="not-card-banner is-hidden">TO NIE JEST KARTA POKEMON</div>
 
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
-                        <button id="startLiveBtn" type="button" class="tcg-btn sm">Podgląd na żywo</button>
-                        <button id="uploadPhotoBtn" type="button" class="tcg-btn sm">Wgraj zdjęcie</button>
-                    </div>
-
-                    <div class="file-upload-bar">
-                        <span>Plik zdjęcia:</span>
-                        <span id="fileNameLabel" class="file-name-label">brak pliku</span>
-                        <input id="photoFileInput" type="file" accept="image/*" class="is-hidden">
+                    <div class="paper-panel">
+                        <div class="crt-box">
+                            <div id="scanResultTitle" style="font-weight:900; font-size:14px; color:#FACC15;">Skaner gotowy</div>
+                            <div id="scanResultDesc" style="font-size:12px; color:#E4E4E7; margin-top:4px; line-height:1.35;">
+                                Włącz kamerę lub wgraj zdjęcie karty. Jeśli w kadrze nie będzie karty Pokémon, pojawi się komunikat TO NIE JEST KARTA POKEMON.
+                            </div>
+                        </div>
                     </div>
                 </section>
 
-                <div id="notPokemonBanner" class="not-card-banner is-hidden">TO NIE JEST KARTA POKEMON</div>
+                <!-- 2. ZAKŁADKA: INDEKS -->
+                <section id="view-index" class="tab-view">
+                    <div class="paper-panel">
+                        <div style="font-weight:900; font-size:14px; margin-bottom:8px;">Indeks kart Pokémon</div>
+                        <input id="indexSearchInput" type="text" placeholder="Szukaj karty np. Charizard, Pikachu..." style="width:100%; padding:8px 10px; border:2.5px solid #18181B; border-radius:7px; font-weight:700; margin-bottom:8px; background:#FFFDF7;">
+                        <div class="cat-row" style="margin-bottom:10px;">
+                            <button type="button" class="cat-pill active" data-index-cat="all">Wszystkie</button>
+                            <button type="button" class="cat-pill" data-index-cat="holo">Holo / EX</button>
+                            <button type="button" class="cat-pill" data-index-cat="vmax">V / VMAX</button>
+                        </div>
+                        <div id="indexCardsGrid" class="index-grid"></div>
+                    </div>
+                </section>
 
-                <section id="reportSection" class="paper-panel report-card">
-                    <div class="price-highlight-box">
-                        <div style="font-size:10.5px; font-weight:800; color:#A1A1AA; text-transform:uppercase;">Status skanera</div>
-                        <div id="reportMainTitle" class="price-main-val">Gotowy do skanowania</div>
-                        <div id="reportSubText" style="font-size:12px; color:#E4E4E7; margin-top:4px; line-height:1.35;">
-                            Wybierz kategorię, ustaw kartę Pokémon w wizjerze i kliknij SKANUJ KARTĘ. Jeśli w kadrze będzie inny obiekt niż karta Pokémon, wyświetli się komunikat TO NIE JEST KARTA POKEMON.
+                <!-- 3. ZAKŁADKA: KLASER -->
+                <section id="view-binder" class="tab-view">
+                    <div class="paper-panel">
+                        <div style="font-weight:900; font-size:14px; margin-bottom:6px;">Twój klaser</div>
+                        <div style="font-size:12px; color:#52525B; margin-bottom:10px;">Zapisane karty z Twoich skanów (strony klasera 3×3).</div>
+                        <div id="binderList" style="display:flex; flex-direction:column; gap:8px;">
+                            <div class="paper-panel warm" style="font-size:12px; font-weight:700;">Klaser jest na razie pusty — zeskanuj kartę w zakładce Skaner.</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. ZAKŁADKA: KARTY -->
+                <section id="view-cards" class="tab-view">
+                    <div class="paper-panel">
+                        <div style="font-weight:900; font-size:14px; margin-bottom:8px;">Lista kart i wyceny PSA</div>
+                        <div id="cardsTabList" style="display:flex; flex-direction:column; gap:8px;"></div>
+                    </div>
+                </section>
+
+                <!-- 5. ZAKŁADKA: CZAT -->
+                <section id="view-chat" class="tab-view">
+                    <div class="paper-panel">
+                        <div style="font-weight:900; font-size:14px; margin-bottom:8px;">Czat skanera</div>
+                        <div id="chatMessages" style="display:flex; flex-direction:column; gap:8px; margin-bottom:10px;">
+                            <div class="crt-box" style="font-size:12px;">Cześć! Pytaj o stany PSA, wycenę lub dlaczego pojawia się „TO NIE JEST KARTA POKEMON”.</div>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <input id="chatInput" type="text" placeholder="Napisz wiadomość..." style="flex:1; padding:8px 10px; border:2.5px solid #18181B; border-radius:7px; font-weight:700; background:#FFFDF7;">
+                            <button id="sendChatBtn" type="button" class="tcg-btn primary sm">Wyślij</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 6. ZAKŁADKA: OPCJE -->
+                <section id="view-options" class="tab-view">
+                    <div class="paper-panel">
+                        <div style="font-weight:900; font-size:14px; margin-bottom:10px;">Opcje i ustawienia</div>
+                        <div style="display:flex; flex-direction:column; gap:10px; font-size:12px; font-weight:800;">
+                            <label style="display:flex; justify-content:space-between; align-items:center;">
+                                <span>Waluta wyceny</span>
+                                <select id="optCurrency" style="padding:6px 8px; border:2px solid #18181B; border-radius:6px; font-weight:800; background:#FFFDF7;">
+                                    <option value="PLN">PLN</option>
+                                    <option value="EUR">EUR</option>
+                                    <option value="USD">USD</option>
+                                </select>
+                            </label>
+                            <label style="display:flex; justify-content:space-between; align-items:center;">
+                                <span>Konto / E-mail</span>
+                                <input id="optAccountInput" type="email" placeholder="twoj@gmail.com" style="padding:6px 8px; border:2px solid #18181B; border-radius:6px; font-weight:700; background:#FFFDF7;">
+                            </label>
+                            <button id="markInstalledManualBtn" type="button" class="tcg-btn sm">Mam już zainstalowaną aplikację (ukryj przycisk pobierania)</button>
                         </div>
                     </div>
                 </section>
             </main>
+
+            <!-- Dolny pasek 6 zakładek -->
+            <nav class="bottom-tabs-bar" aria-label="Zakładki aplikacji">
+                <button type="button" class="tab-btn active" data-tab="scanner">
+                    <span class="tab-icon">⛶</span>
+                    <span>SKANER</span>
+                </button>
+                <button type="button" class="tab-btn" data-tab="index">
+                    <span class="tab-icon">⌕</span>
+                    <span>INDEKS</span>
+                </button>
+                <button type="button" class="tab-btn" data-tab="binder">
+                    <span class="tab-icon">▤</span>
+                    <span>KLASER</span>
+                </button>
+                <button type="button" class="tab-btn" data-tab="cards">
+                    <span class="tab-icon">❐</span>
+                    <span>KARTY</span>
+                </button>
+                <button type="button" class="tab-btn" data-tab="chat">
+                    <span class="tab-icon">💬</span>
+                    <span>CZAT</span>
+                </button>
+                <button type="button" class="tab-btn" data-tab="options">
+                    <span class="tab-icon">⚙</span>
+                    <span>OPCJE</span>
+                </button>
+            </nav>
         </div>
     </div>
 
-    <canvas id="analysisCanvas" width="160" height="224" class="is-hidden"></canvas>
+    <canvas id="frameCanvas" width="160" height="224" class="is-hidden"></canvas>
 
     <script>
         (function () {
-            const INSTALLED_STORAGE_KEY = "skaner_pokemonow_installed_v4";
-            const PREFS_STORAGE_KEY = "skaner_pokemonow_prefs_v4";
+            const INSTALLED_KEY = "skaner_pokemonow_pwa_installed_final";
+            const PREFS_KEY = "skaner_pokemonow_prefs_final";
 
-            const shell = document.getElementById("pokedexShell");
-            const fireLayer = document.getElementById("openingFireLayer");
-            const sneakStage = document.getElementById("sneakPokemonStage");
-
+            const openingFireLayer = document.getElementById("openingFireLayer");
             const installPwaBtn = document.getElementById("installPwaBtn");
-            const installHelpBox = document.getElementById("installHelpBox");
-            const installHelpText = document.getElementById("installHelpText");
-            const confirmInstalledBtn = document.getElementById("confirmInstalledBtn");
+            const markInstalledManualBtn = document.getElementById("markInstalledManualBtn");
 
-            const optionsToggleBtn = document.getElementById("optionsToggleBtn");
-            const optionsDrawer = document.getElementById("optionsDrawer");
-            const volumeSlider = document.getElementById("volumeSlider");
-            const currencySelect = document.getElementById("currencySelect");
-            const gmailAccountInput = document.getElementById("gmailAccountInput");
-            const trainerPillBtn = document.getElementById("trainerPillBtn");
-            const trainerPillText = document.getElementById("trainerPillText");
+            const tabButtons = document.querySelectorAll(".tab-btn");
+            const tabViews = {
+                scanner: document.getElementById("view-scanner"),
+                index: document.getElementById("view-index"),
+                binder: document.getElementById("view-binder"),
+                cards: document.getElementById("view-cards"),
+                chat: document.getElementById("view-chat"),
+                options: document.getElementById("view-options")
+            };
 
-            const categoryChips = document.querySelectorAll(".cat-chip");
-            const videoEl = document.getElementById("cameraVideo");
-            const previewImgEl = document.getElementById("capturedPreviewImg");
-            const cameraPlaceholder = document.getElementById("cameraPlaceholder");
-            const analyzingOverlay = document.getElementById("analyzingOverlay");
-            const camModeBadge = document.getElementById("camModeBadge");
-
+            const cameraVideo = document.getElementById("cameraVideo");
+            const previewImg = document.getElementById("previewImg");
+            const cameraIdleOverlay = document.getElementById("cameraIdleOverlay");
+            const enableCameraBtn = document.getElementById("enableCameraBtn");
+            const switchCamBtn = document.getElementById("switchCamBtn");
+            const galleryUploadBtn = document.getElementById("galleryUploadBtn");
+            const galleryInput = document.getElementById("galleryInput");
+            const selectedFileText = document.getElementById("selectedFileText");
             const scanCardBtn = document.getElementById("scanCardBtn");
-            const switchCameraBtn = document.getElementById("switchCameraBtn");
-            const startLiveBtn = document.getElementById("startLiveBtn");
-            const uploadPhotoBtn = document.getElementById("uploadPhotoBtn");
-            const photoFileInput = document.getElementById("photoFileInput");
-            const fileNameLabel = document.getElementById("fileNameLabel");
+            const scannerStateLabel = document.getElementById("scannerStateLabel");
 
-            const notPokemonBanner = document.getElementById("notPokemonBanner");
-            const reportMainTitle = document.getElementById("reportMainTitle");
-            const reportSubText = document.getElementById("reportSubText");
-            const analysisCanvas = document.getElementById("analysisCanvas");
+            const notPokemonAlert = document.getElementById("notPokemonAlert");
+            const scanResultTitle = document.getElementById("scanResultTitle");
+            const scanResultDesc = document.getElementById("scanResultDesc");
+            const frameCanvas = document.getElementById("frameCanvas");
 
-            let selectedCategory = "all";
+            const optCurrency = document.getElementById("optCurrency");
+            const topCurrencyBadge = document.getElementById("topCurrencyBadge");
+            const optAccountInput = document.getElementById("optAccountInput");
+            const accountPillBtn = document.getElementById("accountPillBtn");
+            const accountPillLabel = document.getElementById("accountPillLabel");
+
+            const indexSearchInput = document.getElementById("indexSearchInput");
+            const indexCardsGrid = document.getElementById("indexCardsGrid");
+            const catPills = document.querySelectorAll(".cat-pill");
+            const binderList = document.getElementById("binderList");
+            const cardsTabList = document.getElementById("cardsTabList");
+
+            const chatMessages = document.getElementById("chatMessages");
+            const chatInput = document.getElementById("chatInput");
+            const sendChatBtn = document.getElementById("sendChatBtn");
+
+            const catalogData = [
+                { name: "Charizard ex", cat: "holo", psa: "PSA 9 Mint", pln: 240 },
+                { name: "Pikachu Holo", cat: "holo", psa: "PSA 10 Gem Mint", pln: 380 },
+                { name: "Umbreon VMAX", cat: "vmax", psa: "PSA 9 Mint", pln: 670 },
+                { name: "Rayquaza VMAX", cat: "vmax", psa: "PSA 10 Gem Mint", pln: 520 },
+                { name: "Blastoise ex", cat: "holo", psa: "PSA 8 NM-MT", pln: 165 },
+                { name: "Gengar VMAX", cat: "vmax", psa: "PSA 9 Mint", pln: 310 }
+            ];
+
+            const savedBinder = [];
+            let activeIndexCat = "all";
             let currentStream = null;
             let facingMode = "environment";
-            let isPhotoMode = false;
-            let deferredInstallPrompt = null;
-            let audioCtx = null;
+            let isPhotoPreview = false;
+            let deferredPrompt = null;
 
-            function getPrefs() {
+            function loadPrefs() {
                 try {
-                    return JSON.parse(localStorage.getItem(PREFS_STORAGE_KEY) || "{}");
+                    return JSON.parse(localStorage.getItem(PREFS_KEY) || "{}");
                 } catch (_) {
                     return {};
                 }
             }
 
-            function savePrefs(partial) {
+            function savePrefs(patch) {
                 try {
-                    localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify({ ...getPrefs(), ...partial }));
+                    localStorage.setItem(PREFS_KEY, JSON.stringify({ ...loadPrefs(), ...patch }));
                 } catch (_) {}
             }
 
-            const savedPrefs = getPrefs();
-            if (typeof savedPrefs.volume === "number") volumeSlider.value = String(savedPrefs.volume);
-            if (savedPrefs.currency) currencySelect.value = savedPrefs.currency;
-            if (savedPrefs.gmail) {
-                gmailAccountInput.value = savedPrefs.gmail;
-                trainerPillText.textContent = "Konto: " + savedPrefs.gmail;
+            const prefs = loadPrefs();
+            if (prefs.currency) {
+                optCurrency.value = prefs.currency;
+                topCurrencyBadge.textContent = prefs.currency;
+            }
+            if (prefs.account) {
+                optAccountInput.value = prefs.account;
+                accountPillLabel.textContent = prefs.account;
             }
 
-            function playSfx(freq, duration = 0.12, type = "triangle") {
-                const vol = Math.max(0, Math.min(1, Number(volumeSlider.value) / 100));
-                if (vol <= 0.005) return;
+            function isStandaloneNow() {
+                return Boolean(
+                    (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+                    window.navigator.standalone === true
+                );
+            }
+
+            function isInstalledFlag() {
                 try {
-                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                    if (!AudioContextClass) return;
-                    if (!audioCtx) audioCtx = new AudioContextClass();
-                    if (audioCtx.state === "suspended") audioCtx.resume();
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.type = type;
-                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                    gain.gain.setValueAtTime(vol * 0.14, audioCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.0008, audioCtx.currentTime + duration);
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start();
-                    osc.stop(audioCtx.currentTime + duration);
-                } catch (_) {}
-            }
-
-            function isRunningStandalone() {
-                const mmStand = window.matchMedia && window.matchMedia("(display-mode: standalone)").matches;
-                const mmFull = window.matchMedia && window.matchMedia("(display-mode: fullscreen)").matches;
-                const mmMin = window.matchMedia && window.matchMedia("(display-mode: minimal-ui)").matches;
-                const iosStand = window.navigator.standalone === true;
-                return Boolean(mmStand || mmFull || mmMin || iosStand);
-            }
-
-            function isAppInstalled() {
-                try {
-                    return isRunningStandalone() || localStorage.getItem(INSTALLED_STORAGE_KEY) === "true";
+                    return isStandaloneNow() || localStorage.getItem(INSTALLED_KEY) === "1";
                 } catch (_) {
-                    return isRunningStandalone();
+                    return isStandaloneNow();
                 }
             }
 
-            function refreshInstallUi() {
-                if (isRunningStandalone()) {
-                    try {
-                        localStorage.setItem(INSTALLED_STORAGE_KEY, "true");
-                    } catch (_) {}
+            function updateInstallButtonState() {
+                if (isStandaloneNow()) {
+                    try { localStorage.setItem(INSTALLED_KEY, "1"); } catch (_) {}
                 }
-                if (isAppInstalled()) {
+                if (isInstalledFlag()) {
                     installPwaBtn.classList.add("is-hidden-installed");
-                    installHelpBox.classList.add("is-hidden");
                 } else {
                     installPwaBtn.classList.remove("is-hidden-installed");
                 }
             }
 
+            // Manifest + Service Worker dla poprawnej instalacji PWA na HTTPS
             try {
-                const svgIcon = encodeURIComponent(
+                const iconSvg = encodeURIComponent(
                     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="36" fill="#DC0A2D"/><circle cx="96" cy="96" r="56" fill="#F7F4EB" stroke="#18181B" stroke-width="10"/><line x1="40" y1="96" x2="152" y2="96" stroke="#18181B" stroke-width="10"/><circle cx="96" cy="96" r="18" fill="#FBC02D" stroke="#18181B" stroke-width="8"/></svg>'
                 );
                 const manifest = {
@@ -1059,23 +1030,16 @@
                     display: "standalone",
                     background_color: "#DC0A2D",
                     theme_color: "#DC0A2D",
-                    icons: [
-                        {
-                            src: `data:image/svg+xml,${svgIcon}`,
-                            sizes: "192x192",
-                            type: "image/svg+xml",
-                            purpose: "any maskable"
-                        }
-                    ]
+                    icons: [{ src: `data:image/svg+xml,${iconSvg}`, sizes: "192x192", type: "image/svg+xml", purpose: "any maskable" }]
                 };
-                const manifestUrl = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" }));
-                const link = document.createElement("link");
-                link.rel = "manifest";
-                link.href = manifestUrl;
-                document.head.appendChild(link);
+                const mUrl = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" }));
+                const mLink = document.createElement("link");
+                mLink.rel = "manifest";
+                mLink.href = mUrl;
+                document.head.appendChild(mLink);
 
                 if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
-                    const swScript = `
+                    const swCode = `
                         self.addEventListener("install", e => self.skipWaiting());
                         self.addEventListener("activate", e => e.waitUntil(self.clients.claim()));
                         self.addEventListener("fetch", event => {
@@ -1083,130 +1047,147 @@
                             event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
                         });
                     `;
-                    const swUrl = URL.createObjectURL(new Blob([swScript], { type: "application/javascript" }));
+                    const swUrl = URL.createObjectURL(new Blob([swCode], { type: "application/javascript" }));
                     navigator.serviceWorker.register(swUrl, { scope: "./" }).catch(() => {});
                 }
             } catch (_) {}
 
             window.addEventListener("beforeinstallprompt", (e) => {
-                if (isAppInstalled()) return;
+                if (isInstalledFlag()) return;
                 e.preventDefault();
-                deferredInstallPrompt = e;
+                deferredPrompt = e;
                 installPwaBtn.classList.remove("is-hidden-installed");
             });
 
             window.addEventListener("appinstalled", () => {
-                try {
-                    localStorage.setItem(INSTALLED_STORAGE_KEY, "true");
-                } catch (_) {}
-                deferredInstallPrompt = null;
-                refreshInstallUi();
-                playSfx(660, 0.16, "triangle");
+                try { localStorage.setItem(INSTALLED_KEY, "1"); } catch (_) {}
+                deferredPrompt = null;
+                updateInstallButtonState();
             });
 
-            if (window.matchMedia) {
-                const standMedia = window.matchMedia("(display-mode: standalone)");
-                if (standMedia.addEventListener) {
-                    standMedia.addEventListener("change", refreshInstallUi);
-                }
-            }
-
             installPwaBtn.addEventListener("click", async () => {
-                playSfx(520, 0.1, "sine");
-                if (deferredInstallPrompt) {
-                    deferredInstallPrompt.prompt();
-                    const outcomeObj = await deferredInstallPrompt.userChoice;
-                    deferredInstallPrompt = null;
-                    if (outcomeObj && outcomeObj.outcome === "accepted") {
-                        try {
-                            localStorage.setItem(INSTALLED_STORAGE_KEY, "true");
-                        } catch (_) {}
-                        refreshInstallUi();
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const res = await deferredPrompt.userChoice;
+                    deferredPrompt = null;
+                    if (res && res.outcome === "accepted") {
+                        try { localStorage.setItem(INSTALLED_KEY, "1"); } catch (_) {}
+                        updateInstallButtonState();
                         return;
                     }
                 }
-                const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
-                installHelpText.textContent = isIos
-                    ? "Na iPhonie/iPadzie dotknij Udostępnij, a potem „Dodaj do ekranu głównego”. Po wejściu z ikony na pulpicie przycisk zniknie."
-                    : "Otwórz menu przeglądarki (⋮) i wybierz „Dodaj do ekranu głównego” lub „Zainstaluj aplikację”. Po otwarciu z pulpitu przycisk zniknie.";
-                installHelpBox.classList.remove("is-hidden");
+                switchToTab("options");
+                alert("Aby zainstalować na telefonie: otwórz menu przeglądarki (⋮ lub Udostępnij) i wybierz „Dodaj do ekranu głównego”.");
             });
 
-            confirmInstalledBtn.addEventListener("click", () => {
-                try {
-                    localStorage.setItem(INSTALLED_STORAGE_KEY, "true");
-                } catch (_) {}
-                refreshInstallUi();
+            markInstalledManualBtn.addEventListener("click", () => {
+                try { localStorage.setItem(INSTALLED_KEY, "1"); } catch (_) {}
+                updateInstallButtonState();
             });
 
-            refreshInstallUi();
+            updateInstallButtonState();
 
+            // 1.5s anime ognie na start
             setTimeout(() => {
-                playSfx(185, 0.25, "sawtooth");
-                fireLayer.classList.remove("active");
+                openingFireLayer.classList.remove("active");
             }, 1500);
 
-            const sneakyMons = [
-                { name: "Pikachu", msg: "Pika-psst!", dir: "from-left", color: "#FACC15" },
-                { name: "Gengar", msg: "Hehehe...", dir: "from-right", color: "#A855F7" },
-                { name: "Eevee", msg: "Vee~", dir: "from-top", color: "#D97706" }
-            ];
-            let sneakIdx = 0;
-
-            function spawnSneakingPokemon() {
-                const mon = sneakyMons[sneakIdx % sneakyMons.length];
-                sneakIdx++;
-                const box = document.createElement("div");
-                box.className = `sneak-sprite-box ${mon.dir}`;
-                box.innerHTML = `
-                    <div class="sneak-bubble">${mon.name}: ${mon.msg}</div>
-                    <svg width="46" height="46" viewBox="0 0 46 46" aria-hidden="true">
-                        <circle cx="23" cy="24" r="16" fill="${mon.color}" stroke="#18181B" stroke-width="3"/>
-                        <circle cx="18" cy="21" r="2.6" fill="#18181B"/>
-                        <circle cx="28" cy="21" r="2.6" fill="#18181B"/>
-                        <path d="M19 29 Q23 32 27 29" fill="none" stroke="#18181B" stroke-width="2.4" stroke-linecap="round"/>
-                    </svg>
-                `;
-                sneakStage.appendChild(box);
-                playSfx(720, 0.1, "sine");
-                setTimeout(() => box.remove(), 4300);
+            function switchToTab(tabName) {
+                tabButtons.forEach((btn) => {
+                    btn.classList.toggle("active", btn.getAttribute("data-tab") === tabName);
+                });
+                Object.keys(tabViews).forEach((key) => {
+                    tabViews[key].classList.toggle("active", key === tabName);
+                });
             }
 
-            setInterval(spawnSneakingPokemon, 5 * 60 * 1000);
-
-            categoryChips.forEach((chip) => {
-                chip.addEventListener("click", () => {
-                    categoryChips.forEach((c) => c.classList.remove("active"));
-                    chip.classList.add("active");
-                    selectedCategory = chip.getAttribute("data-cat") || "all";
-                    playSfx(510, 0.08, "sine");
+            tabButtons.forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    switchToTab(btn.getAttribute("data-tab"));
                 });
             });
 
-            optionsToggleBtn.addEventListener("click", () => {
-                optionsDrawer.classList.toggle("open");
-                playSfx(440, 0.08, "sine");
+            accountPillBtn.addEventListener("click", () => {
+                switchToTab("options");
+                optAccountInput.focus();
             });
 
-            trainerPillBtn.addEventListener("click", () => {
-                optionsDrawer.classList.add("open");
-                gmailAccountInput.focus();
+            optCurrency.addEventListener("change", () => {
+                const c = optCurrency.value;
+                topCurrencyBadge.textContent = c;
+                savePrefs({ currency: c });
+                renderIndexAndCards();
             });
 
-            volumeSlider.addEventListener("input", () => savePrefs({ volume: Number(volumeSlider.value) }));
-            currencySelect.addEventListener("change", () => savePrefs({ currency: currencySelect.value }));
-            gmailAccountInput.addEventListener("change", () => {
-                const val = gmailAccountInput.value.trim();
-                savePrefs({ gmail: val });
-                trainerPillText.textContent = val ? "Konto: " + val : "Konto: Gość";
+            optAccountInput.addEventListener("change", () => {
+                const val = optAccountInput.value.trim();
+                accountPillLabel.textContent = val || "Gość • Załóż konto";
+                savePrefs({ account: val });
             });
 
-            async function startLiveCamera() {
-                isPhotoMode = false;
-                previewImgEl.classList.add("is-hidden");
-                videoEl.classList.remove("is-hidden");
-                cameraPlaceholder.classList.add("is-hidden");
-                camModeBadge.textContent = facingMode === "environment" ? "TYŁ" : "PRZÓD";
+            function formatPrice(pln) {
+                const c = optCurrency.value || "PLN";
+                const mult = c === "EUR" ? 0.23 : c === "USD" ? 0.25 : 1;
+                return `${Math.max(5, Math.round(pln * mult))} ${c}`;
+            }
+
+            function renderIndexAndCards() {
+                const q = (indexSearchInput.value || "").trim().toLowerCase();
+                const list = catalogData.filter((item) => {
+                    const matchCat = activeIndexCat === "all" || item.cat === activeIndexCat;
+                    const matchQ = !q || item.name.toLowerCase().includes(q);
+                    return matchCat && matchQ;
+                });
+
+                indexCardsGrid.innerHTML = list.map((item) => `
+                    <div class="index-item">
+                        <div style="font-weight:900; font-size:12px;">${item.name}</div>
+                        <div style="font-size:10.5px; color:#52525B; font-weight:700;">${item.psa}</div>
+                        <div style="font-weight:900; font-size:12px; color:#991B1B;">${formatPrice(item.pln)}</div>
+                    </div>
+                `).join("");
+
+                cardsTabList.innerHTML = catalogData.map((item) => `
+                    <div class="paper-panel warm" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-weight:900; font-size:12.5px;">${item.name}</div>
+                            <div style="font-size:11px; color:#52525B; font-weight:700;">Stan: ${item.psa}</div>
+                        </div>
+                        <div style="font-weight:900; font-size:13px;">${formatPrice(item.pln)}</div>
+                    </div>
+                `).join("");
+            }
+
+            catPills.forEach((pill) => {
+                pill.addEventListener("click", () => {
+                    catPills.forEach((p) => p.classList.remove("active"));
+                    pill.classList.add("active");
+                    activeIndexCat = pill.getAttribute("data-index-cat") || "all";
+                    renderIndexAndCards();
+                });
+            });
+
+            indexSearchInput.addEventListener("input", renderIndexAndCards);
+            renderIndexAndCards();
+
+            function addCardToBinder(card) {
+                savedBinder.unshift({ ...card, time: new Date().toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) });
+                binderList.innerHTML = savedBinder.map((item) => `
+                    <div class="paper-panel warm" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-weight:900; font-size:12.5px;">${item.name} (${item.psa})</div>
+                            <div style="font-size:10.5px; color:#52525B; font-weight:700;">Dodano: ${item.time}</div>
+                        </div>
+                        <div style="font-weight:900; font-size:12.5px;">${formatPrice(item.pln)}</div>
+                    </div>
+                `).join("");
+            }
+
+            async function startCamera() {
+                isPhotoPreview = false;
+                previewImg.classList.add("is-hidden");
+                cameraVideo.classList.remove("is-hidden");
+                cameraIdleOverlay.classList.add("is-hidden");
 
                 if (currentStream) {
                     currentStream.getTracks().forEach((tr) => tr.stop());
@@ -1214,8 +1195,8 @@
                 }
 
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    cameraPlaceholder.classList.remove("is-hidden");
-                    cameraPlaceholder.textContent = "Kamera niedostępna — użyj przycisku „Wgraj zdjęcie”.";
+                    cameraIdleOverlay.classList.remove("is-hidden");
+                    scannerStateLabel.textContent = "BRAK KAMERY";
                     return;
                 }
 
@@ -1224,164 +1205,134 @@
                         video: { facingMode },
                         audio: false
                     });
-                    videoEl.srcObject = currentStream;
-                    await videoEl.play();
+                    cameraVideo.srcObject = currentStream;
+                    await cameraVideo.play();
+                    scannerStateLabel.textContent = facingMode === "environment" ? "TYŁ AKTYWNY" : "PRZÓD AKTYWNY";
                 } catch (_) {
-                    cameraPlaceholder.classList.remove("is-hidden");
-                    cameraPlaceholder.textContent = "Brak dostępu do kamery — użyj przycisku „Wgraj zdjęcie”.";
+                    cameraIdleOverlay.classList.remove("is-hidden");
+                    scannerStateLabel.textContent = "GOTOWY";
                 }
             }
 
-            switchCameraBtn.addEventListener("click", () => {
+            enableCameraBtn.addEventListener("click", startCamera);
+            switchCamBtn.addEventListener("click", () => {
                 facingMode = facingMode === "environment" ? "user" : "environment";
-                playSfx(480, 0.09, "sine");
-                startLiveCamera();
+                startCamera();
             });
 
-            startLiveBtn.addEventListener("click", () => {
-                playSfx(460, 0.09, "sine");
-                startLiveCamera();
-            });
-
-            uploadPhotoBtn.addEventListener("click", () => photoFileInput.click());
-
-            photoFileInput.addEventListener("change", (e) => {
-                const file = e.target.files && e.target.files[0];
+            galleryUploadBtn.addEventListener("click", () => galleryInput.click());
+            galleryInput.addEventListener("change", (ev) => {
+                const file = ev.target.files && ev.target.files[0];
                 if (!file) return;
-                fileNameLabel.textContent = file.name;
+                selectedFileText.textContent = file.name;
                 const reader = new FileReader();
                 reader.onload = () => {
-                    previewImgEl.onload = () => {
-                        isPhotoMode = true;
-                        videoEl.classList.add("is-hidden");
-                        cameraPlaceholder.classList.add("is-hidden");
-                        previewImgEl.classList.remove("is-hidden");
-                        runScanEvaluation();
+                    previewImg.onload = () => {
+                        isPhotoPreview = true;
+                        cameraVideo.classList.add("is-hidden");
+                        cameraIdleOverlay.classList.add("is-hidden");
+                        previewImg.classList.remove("is-hidden");
+                        evaluateScan();
                     };
-                    previewImgEl.src = reader.result;
+                    previewImg.src = reader.result;
                 };
                 reader.readAsDataURL(file);
             });
 
-            function isPokemonCardFrame(ctx, w, h) {
-                const data = ctx.getImageData(0, 0, w, h).data;
+            function checkFrameForCard(ctx, w, h) {
+                const px = ctx.getImageData(0, 0, w, h).data;
                 let edges = 0;
-                let saturated = 0;
-                let tooBright = 0;
-                let tooDark = 0;
-                const luma = new Float32Array(w * h);
+                let colorful = 0;
+                let dark = 0;
+                let bright = 0;
+                const lum = new Float32Array(w * h);
 
                 for (let y = 0; y < h; y++) {
                     for (let x = 0; x < w; x++) {
                         const i = (y * w + x) * 4;
-                        const r = data[i];
-                        const g = data[i + 1];
-                        const b = data[i + 2];
-                        const yVal = 0.299 * r + 0.587 * g + 0.114 * b;
-                        luma[y * w + x] = yVal;
-
-                        if (yVal > 218) tooBright++;
-                        if (yVal < 24) tooDark++;
-
-                        const span = Math.max(r, g, b) - Math.min(r, g, b);
-                        if (span > 52 && yVal > 42 && yVal < 235) {
-                            saturated++;
-                        }
+                        const r = px[i], g = px[i + 1], b = px[i + 2];
+                        const l = 0.299 * r + 0.587 * g + 0.114 * b;
+                        lum[y * w + x] = l;
+                        if (l < 24) dark++;
+                        if (l > 220) bright++;
+                        if (Math.max(r, g, b) - Math.min(r, g, b) > 50 && l > 40 && l < 235) colorful++;
                     }
                 }
 
                 for (let y = 1; y < h - 1; y++) {
                     for (let x = 1; x < w - 1; x++) {
-                        const gx = Math.abs(luma[y * w + x + 1] - luma[y * w + x - 1]);
-                        const gy = Math.abs(luma[(y + 1) * w + x] - luma[(y - 1) * w + x]);
-                        if (gx + gy > 62) edges++;
+                        const dx = Math.abs(lum[y * w + x + 1] - lum[y * w + x - 1]);
+                        const dy = Math.abs(lum[(y + 1) * w + x] - lum[(y - 1) * w + x]);
+                        if (dx + dy > 60) edges++;
                     }
                 }
 
                 const total = w * h;
-                const edgeRatio = edges / total;
-                const satRatio = saturated / total;
-                const brightRatio = tooBright / total;
-                const darkRatio = tooDark / total;
-
-                const validCard =
-                    edgeRatio > 0.05 &&
-                    edgeRatio < 0.5 &&
-                    satRatio > 0.09 &&
-                    brightRatio < 0.72 &&
-                    darkRatio < 0.78;
-
-                return { validCard, edgeRatio, satRatio };
+                return {
+                    isCard:
+                        edges / total > 0.05 &&
+                        edges / total < 0.52 &&
+                        colorful / total > 0.09 &&
+                        dark / total < 0.78 &&
+                        bright / total < 0.72,
+                    edgesRatio: edges / total
+                };
             }
 
-            function showNotPokemonMessage() {
-                notPokemonBanner.classList.remove("is-hidden");
-                reportMainTitle.style.color = "#FF6B86";
-                reportMainTitle.textContent = "TO NIE JEST KARTA POKEMON";
-                reportSubText.textContent =
-                    "W kadrze nie wykryto karty Pokémon. Ustaw kartę Pokémon wewnątrz ramki 63×88 mm i spróbuj ponownie.";
-                playSfx(175, 0.22, "sawtooth");
+            function evaluateScan() {
+                const ctx = frameCanvas.getContext("2d");
+                ctx.clearRect(0, 0, frameCanvas.width, frameCanvas.height);
+
+                let ready = false;
+                if (isPhotoPreview && previewImg.complete && previewImg.naturalWidth > 0) {
+                    ctx.drawImage(previewImg, 0, 0, frameCanvas.width, frameCanvas.height);
+                    ready = true;
+                } else if (cameraVideo.readyState >= 2) {
+                    ctx.drawImage(cameraVideo, 0, 0, frameCanvas.width, frameCanvas.height);
+                    ready = true;
+                }
+
+                if (!ready) {
+                    notPokemonAlert.classList.remove("is-hidden");
+                    scanResultTitle.textContent = "TO NIE JEST KARTA POKEMON";
+                    scanResultDesc.textContent = "Brak obrazu karty w wizjerze. Włącz kamerę lub wgraj zdjęcie z galerii.";
+                    return;
+                }
+
+                const res = checkFrameForCard(ctx, frameCanvas.width, frameCanvas.height);
+                if (!res.isCard) {
+                    notPokemonAlert.classList.remove("is-hidden");
+                    scanResultTitle.textContent = "TO NIE JEST KARTA POKEMON";
+                    scanResultDesc.textContent = "Wykryty obraz nie wygląda jak karta Pokémon. Ustaw kartę w ramce 63×88 mm.";
+                    return;
+                }
+
+                notPokemonAlert.classList.add("is-hidden");
+                const picked = catalogData[Math.abs(Math.floor(res.edgesRatio * 1000)) % catalogData.length];
+                scanResultTitle.textContent = `${picked.name} — ${picked.psa}`;
+                scanResultDesc.textContent = `Wykryto kartę Pokémon • Szacowana wartość: ${formatPrice(picked.pln)}`;
+                addCardToBinder(picked);
             }
 
-            function showCardDetectedMessage(stats) {
-                notPokemonBanner.classList.add("is-hidden");
-                const curr = currencySelect.value || "PLN";
-                const sampleCards = [
-                    { name: "Charizard ex", psa: "PSA 9 Mint", pln: 240, cat: "holo-ex" },
-                    { name: "Umbreon VMAX", psa: "PSA 9 Mint", pln: 670, cat: "v-vmax" },
-                    { name: "Boss's Orders", psa: "PSA 10 Gem Mint", pln: 95, cat: "trainers" },
-                    { name: "Pikachu Holo", psa: "PSA 10 Gem Mint", pln: 380, cat: "holo-ex" }
-                ];
-                const filtered = selectedCategory === "all"
-                    ? sampleCards
-                    : sampleCards.filter((c) => c.cat === selectedCategory);
-                const pool = filtered.length ? filtered : sampleCards;
-                const pick = pool[Math.abs(Math.floor((stats.edgeRatio * 900 + stats.satRatio * 400))) % pool.length];
-                const rate = curr === "EUR" ? 0.23 : curr === "USD" ? 0.25 : 1;
-                const value = Math.max(5, Math.round(pick.pln * rate));
+            scanCardBtn.addEventListener("click", evaluateScan);
 
-                reportMainTitle.style.color = "#FACC15";
-                reportMainTitle.textContent = `${pick.name} — ${pick.psa}`;
-                reportSubText.textContent = `Wykryto kartę Pokémon • Szacowana wartość: ~${value} ${curr}`;
-                playSfx(587.33, 0.14, "triangle");
-            }
+            sendChatBtn.addEventListener("click", () => {
+                const text = (chatInput.value || "").trim();
+                if (!text) return;
+                const userBubble = document.createElement("div");
+                userBubble.className = "paper-panel warm";
+                userBubble.style.fontSize = "12px";
+                userBubble.style.fontWeight = "700";
+                userBubble.textContent = `Ty: ${text}`;
+                chatMessages.appendChild(userBubble);
 
-            function runScanEvaluation() {
-                shell.classList.add("is-scanning");
-                analyzingOverlay.classList.add("show");
-
-                setTimeout(() => {
-                    const ctx = analysisCanvas.getContext("2d");
-                    ctx.clearRect(0, 0, analysisCanvas.width, analysisCanvas.height);
-
-                    let hasSource = false;
-                    if (isPhotoMode && previewImgEl.complete && previewImgEl.naturalWidth > 0) {
-                        ctx.drawImage(previewImgEl, 0, 0, analysisCanvas.width, analysisCanvas.height);
-                        hasSource = true;
-                    } else if (videoEl.readyState >= 2) {
-                        ctx.drawImage(videoEl, 0, 0, analysisCanvas.width, analysisCanvas.height);
-                        hasSource = true;
-                    }
-
-                    analyzingOverlay.classList.remove("show");
-                    shell.classList.remove("is-scanning");
-
-                    if (!hasSource) {
-                        showNotPokemonMessage();
-                        return;
-                    }
-
-                    const stats = isPokemonCardFrame(ctx, analysisCanvas.width, analysisCanvas.height);
-                    if (!stats.validCard) {
-                        showNotPokemonMessage();
-                    } else {
-                        showCardDetectedMessage(stats);
-                    }
-                }, 450);
-            }
-
-            scanCardBtn.addEventListener("click", runScanEvaluation);
-            startLiveCamera();
+                const botBubble = document.createElement("div");
+                botBubble.className = "crt-box";
+                botBubble.style.fontSize = "12px";
+                botBubble.textContent = "Skaner: Jeśli w wizjerze nie ma karty Pokémon, pokaże się komunikat TO NIE JEST KARTA POKEMON. Możesz też przejrzeć karty w zakładce INDEKS lub KARTY.";
+                chatMessages.appendChild(botBubble);
+                chatInput.value = "";
+            });
         })();
     </script>
 </body>
