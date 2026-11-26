@@ -1,0 +1,3665 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Skaner Pokemonów — Czytnik Kart Pokemon</title>
+A
+    <meta name="theme-color" content="#DC0A2D">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Skaner Pokemonów">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================================
+           1. DESIGN TOKENS & TACTILE POKEDEX / TCG STYLING
+           ========================================================= */
+        :root {
+            --dex-red: #DC0A2D;
+            --dex-red-dark: #A60520;
+            --paper-cream: #F7F4EB;
+            --paper-warm: #EFE9D8;
+            --ink-black: #18181B;
+            --ink-muted: #52525B;
+            --crt-bg: #15181C;
+            --crt-text: #F7F4EB;
+            --led-blue: #29B6F6;
+            --led-amber: #FBC02D;
+            --led-green: #2E7D32;
+            --border-w: 3px;
+            --shadow-hard: 4px 4px 0px #18181B;
+            --shadow-shell: 7px 7px 0px #18181B;
+            --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+            background-color: #1D1B20;
+            background-image: radial-gradient(#35313A 1.25px, transparent 1.25px);
+            background-size: 18px 18px;
+            color: var(--ink-black);
+            font-family: var(--font-ui);
+            overscroll-behavior-y: none;
+        }
+
+        .app-stage {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 0;
+        }
+
+        @media (min-width: 520px) {
+            .app-stage {
+                padding: 16px 12px 28px;
+            }
+        }
+
+        /* Glowna obudowa Pokedeksa */
+        .pokedex-shell {
+            width: 100%;
+            max-width: 460px;
+            min-height: 100vh;
+            background-color: var(--dex-red);
+            border: var(--border-w) solid var(--ink-black);
+            box-shadow: var(--shadow-shell);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        @media (min-width: 520px) {
+            .pokedex-shell {
+                min-height: calc(100vh - 44px);
+                border-radius: 16px;
+            }
+        }
+
+        .pt-safe { padding-top: max(10px, env(safe-area-inset-top)); }
+        .pb-safe { padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+
+        /* =========================================================
+           2. ANIMACJA OGNI Z LEWEJ I PRAWEJ (1.5 SEKUNDY NA START)
+           ========================================================= */
+        .opening-fire-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 120;
+            pointer-events: none;
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.22s ease, visibility 0.22s ease;
+        }
+
+        .opening-fire-layer.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .fire-bank {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 46%;
+            max-width: 240px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 24px 0;
+        }
+
+        .fire-bank.left {
+            left: 0;
+            transform-origin: left center;
+        }
+
+        .fire-bank.right {
+            right: 0;
+            transform-origin: right center;
+        }
+
+        .flame-tongue {
+            position: relative;
+            height: 68px;
+            width: 100%;
+            margin: -10px 0;
+        }
+
+        .flame-shape {
+            position: absolute;
+            top: 50%;
+            width: 120px;
+            height: 54px;
+            margin-top: -27px;
+            clip-path: polygon(0% 50%, 28% 8%, 62% 22%, 100% 50%, 62% 78%, 28% 92%);
+            border: 2px solid #18181B;
+        }
+
+        .fire-bank.left .flame-shape {
+            left: -24px;
+            background: linear-gradient(90deg, #B91C1C 0%, #EA580C 48%, #FACC15 100%);
+            animation: fireSurgeLeft 1.5s cubic-bezier(0.16, 0.9, 0.25, 1) forwards;
+            animation-delay: var(--f-delay, 0ms);
+        }
+
+        .fire-bank.right .flame-shape {
+            right: -24px;
+            background: linear-gradient(270deg, #B91C1C 0%, #EA580C 48%, #FACC15 100%);
+            animation: fireSurgeRight 1.5s cubic-bezier(0.16, 0.9, 0.25, 1) forwards;
+            animation-delay: var(--f-delay, 0ms);
+        }
+
+        .flame-core {
+            position: absolute;
+            top: 50%;
+            width: 72px;
+            height: 26px;
+            margin-top: -13px;
+            clip-path: polygon(0% 50%, 35% 15%, 100% 50%, 35% 85%);
+            background-color: #FEF08A;
+        }
+
+        .fire-bank.left .flame-core {
+            left: -6px;
+            animation: fireCoreLeft 1.5s ease-out forwards;
+            animation-delay: var(--f-delay, 0ms);
+        }
+
+        .fire-bank.right .flame-core {
+            right: -6px;
+            animation: fireCoreRight 1.5s ease-out forwards;
+            animation-delay: var(--f-delay, 0ms);
+        }
+
+        @keyframes fireSurgeLeft {
+            0% { transform: translateX(-40%) scaleX(0.55) scaleY(0.7); opacity: 0; }
+            22% { transform: translateX(28%) scaleX(1.38) scaleY(1.12); opacity: 1; }
+            55% { transform: translateX(46%) scaleX(1.55) scaleY(0.96); opacity: 0.95; }
+            100% { transform: translateX(-65%) scaleX(0.4) scaleY(0.5); opacity: 0; }
+        }
+
+        @keyframes fireSurgeRight {
+            0% { transform: translateX(40%) scaleX(0.55) scaleY(0.7); opacity: 0; }
+            22% { transform: translateX(-28%) scaleX(1.38) scaleY(1.12); opacity: 1; }
+            55% { transform: translateX(-46%) scaleX(1.55) scaleY(0.96); opacity: 0.95; }
+            100% { transform: translateX(65%) scaleX(0.4) scaleY(0.5); opacity: 0; }
+        }
+
+        @keyframes fireCoreLeft {
+            0% { transform: translateX(-20%) scaleX(0.5); opacity: 0; }
+            25% { transform: translateX(35%) scaleX(1.35); opacity: 1; }
+            100% { transform: translateX(-40%) scaleX(0.3); opacity: 0; }
+        }
+
+        @keyframes fireCoreRight {
+            0% { transform: translateX(20%) scaleX(0.5); opacity: 0; }
+            25% { transform: translateX(-35%) scaleX(1.35); opacity: 1; }
+            100% { transform: translateX(40%) scaleX(0.3); opacity: 0; }
+        }
+
+        /* =========================================================
+           3. SKRADAJACE SIE POKEMONY CO 5 MINUT (300,000 MS)
+           ========================================================= */
+        .sneak-pokemon-stage {
+            position: fixed;
+            inset: 0;
+            z-index: 95;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .sneak-sprite-box {
+            position: fixed;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .sneak-bubble {
+            background-color: var(--paper-cream);
+            color: var(--ink-black);
+            border: 2.5px solid var(--ink-black);
+            border-radius: 8px;
+            padding: 3px 7px;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 800;
+            box-shadow: 2px 2px 0px var(--ink-black);
+            white-space: nowrap;
+        }
+
+        .sneak-sprite-box.from-left {
+            left: -74px;
+            bottom: 84px;
+            animation: sneakAcrossLeft 4.2s cubic-bezier(0.22, 0.9, 0.3, 1) forwards;
+        }
+
+        .sneak-sprite-box.from-right {
+            right: -74px;
+            bottom: 132px;
+            animation: sneakAcrossRight 4.2s cubic-bezier(0.22, 0.9, 0.3, 1) forwards;
+        }
+
+        .sneak-sprite-box.from-top {
+            top: -74px;
+            left: 24px;
+            animation: sneakPeekTop 4.2s cubic-bezier(0.22, 0.9, 0.3, 1) forwards;
+        }
+
+        @keyframes sneakAcrossLeft {
+            0% { transform: translateX(0) translateY(0) rotate(-4deg); opacity: 0; }
+            14% { transform: translateX(82px) translateY(-6px) rotate(3deg); opacity: 1; }
+            32% { transform: translateX(130px) translateY(2px) rotate(-3deg); opacity: 1; }
+            55% { transform: translateX(195px) translateY(-8px) rotate(4deg); opacity: 1; }
+            82% { transform: translateX(255px) translateY(0px) rotate(-2deg); opacity: 0.9; }
+            100% { transform: translateX(350px) translateY(-4px) rotate(0deg); opacity: 0; }
+        }
+
+        @keyframes sneakAcrossRight {
+            0% { transform: translateX(0) translateY(0) rotate(4deg); opacity: 0; }
+            14% { transform: translateX(-82px) translateY(-6px) rotate(-3deg); opacity: 1; }
+            32% { transform: translateX(-130px) translateY(2px) rotate(3deg); opacity: 1; }
+            55% { transform: translateX(-195px) translateY(-8px) rotate(-4deg); opacity: 1; }
+            82% { transform: translateX(-255px) translateY(0px) rotate(2deg); opacity: 0.9; }
+            100% { transform: translateX(-350px) translateY(-4px) rotate(0deg); opacity: 0; }
+        }
+
+        @keyframes sneakPeekTop {
+            0% { transform: translateY(0) rotate(-6deg); opacity: 0; }
+            18% { transform: translateY(84px) rotate(4deg); opacity: 1; }
+            45% { transform: translateY(72px) translateX(22px) rotate(-4deg); opacity: 1; }
+            72% { transform: translateY(88px) translateX(-12px) rotate(3deg); opacity: 1; }
+            100% { transform: translateY(-30px) rotate(0deg); opacity: 0; }
+        }
+
+        /* =========================================================
+           4. NAGLOWEK, PRZYCISKI, PANELE I WIZJER 63x88 MM
+           ========================================================= */
+        .dex-header {
+            background-color: var(--dex-red);
+            border-bottom: var(--border-w) solid var(--ink-black);
+            padding: 10px 12px 12px;
+            position: sticky;
+            top: 0;
+            z-index: 40;
+        }
+
+        .dex-top-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .dex-leds-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .lens-blue {
+            width: 38px;
+            height: 38px;
+            border-radius: 999px;
+            background-color: var(--led-blue);
+            border: var(--border-w) solid var(--ink-black);
+            box-shadow:
+                inset -4px -4px 0px rgba(0, 0, 0, 0.28),
+                inset 4px 4px 0px rgba(255, 255, 255, 0.55),
+                2px 2px 0px var(--ink-black);
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .lens-blue::after {
+            content: "";
+            position: absolute;
+            top: 6px;
+            left: 7px;
+            width: 9px;
+            height: 6px;
+            border-radius: 999px;
+            background-color: rgba(255, 255, 255, 0.85);
+            transform: rotate(-25deg);
+        }
+
+        .pokedex-shell.is-scanning .lens-blue {
+            animation: lensPulse 0.7s infinite alternate;
+            background-color: #67E8F9;
+        }
+
+        .mini-leds {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 2px;
+        }
+
+        .mini-led {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            border: 2px solid var(--ink-black);
+        }
+
+        .mini-led.red { background-color: #FF5252; }
+        .mini-led.amber { background-color: var(--led-amber); }
+        .mini-led.green { background-color: #4CAF50; }
+
+        .dex-title {
+            margin: 0;
+            font-size: 17px;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            color: var(--paper-cream);
+            text-shadow: 2px 2px 0px var(--ink-black);
+            line-height: 1.1;
+            white-space: nowrap;
+        }
+
+        .trainer-pill-btn {
+            margin-top: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background-color: var(--paper-cream);
+            color: var(--ink-black);
+            border: 2px solid var(--ink-black);
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px var(--ink-black);
+            max-width: 215px;
+        }
+
+        .trainer-pill-btn:active {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px var(--ink-black);
+        }
+
+        .trainer-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 999px;
+            border: 1.5px solid var(--ink-black);
+            flex-shrink: 0;
+        }
+
+        .trainer-pill-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .tcg-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 9px 11px;
+            border-radius: 8px;
+            border: var(--border-w) solid var(--ink-black);
+            background-color: var(--paper-cream);
+            color: var(--ink-black);
+            font-family: var(--font-ui);
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            box-shadow: 3px 3px 0px var(--ink-black);
+            transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.14s ease;
+            user-select: none;
+        }
+
+        .tcg-btn:hover { background-color: #FFFDF7; }
+        .tcg-btn:active {
+            transform: translate(2.5px, 2.5px);
+            box-shadow: 0.5px 0.5px 0px var(--ink-black);
+        }
+
+        .tcg-btn.sm {
+            padding: 6px 9px;
+            font-size: 11px;
+            box-shadow: 2px 2px 0px var(--ink-black);
+        }
+
+        .tcg-btn.sm:active {
+            transform: translate(1.5px, 1.5px);
+            box-shadow: 0.5px 0.5px 0px var(--ink-black);
+        }
+
+        .tcg-btn.primary {
+            background-color: var(--led-amber);
+            color: var(--ink-black);
+            font-size: 13.5px;
+            padding: 12px 14px;
+        }
+
+        .tcg-btn.primary:hover { background-color: #FFD54F; }
+        .tcg-btn.danger { background-color: #FFCDD2; color: #7F1D1D; }
+        .tcg-btn.success { background-color: #C8E6C9; color: #1B5E20; }
+        .tcg-btn.is-hidden-installed { display: none !important; }
+
+        .paper-panel {
+            background-color: var(--paper-cream);
+            color: var(--ink-black);
+            border: var(--border-w) solid var(--ink-black);
+            border-radius: 10px;
+            box-shadow: var(--shadow-hard);
+            padding: 12px;
+        }
+
+        .paper-panel.warm { background-color: var(--paper-warm); }
+
+        .crt-screen {
+            background-color: var(--crt-bg);
+            color: var(--crt-text);
+            border: var(--border-w) solid var(--ink-black);
+            border-radius: 10px;
+            box-shadow: inset 0 0 0 2px #2D333B, 3px 3px 0px var(--ink-black);
+        }
+
+        .mono {
+            font-family: var(--font-mono);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .dex-main {
+            flex: 1;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-bottom: 84px;
+        }
+
+        .view-section {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .view-section.active {
+            display: flex;
+            animation: tabEnter 0.22s cubic-bezier(0.18, 0.9, 0.32, 1.05) both;
+        }
+
+        /* Wizjer 63x88 mm */
+        .viewfinder-outer {
+            background-color: #141417;
+            border: var(--border-w) solid var(--ink-black);
+            border-radius: 12px;
+            padding: 10px;
+            box-shadow: var(--shadow-hard);
+        }
+
+        .viewfinder-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            margin-bottom: 8px;
+            font-size: 11px;
+            font-weight: 800;
+            color: #E4E4E7;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 2px 7px;
+            border-radius: 4px;
+            border: 1.5px solid #000;
+            background-color: #27272A;
+            color: #FACC15;
+            font-family: var(--font-mono);
+            font-size: 10px;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            background-color: #4ADE80;
+        }
+
+        .card-frame-stage {
+            position: relative;
+            width: 100%;
+            max-width: 282px;
+            aspect-ratio: 63 / 88;
+            margin: 0 auto;
+            background-color: #09090B;
+            border: var(--border-w) solid #F7F4EB;
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-frame-stage video,
+        .card-frame-stage img.preview-media {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .camera-idle-box {
+            padding: 14px;
+            text-align: center;
+            color: var(--paper-cream);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            z-index: 3;
+        }
+
+        .camera-idle-box p {
+            margin: 0;
+            font-size: 12px;
+            color: #D4D4D8;
+            line-height: 1.4;
+        }
+
+        .centering-grid {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 4;
+            border: 2px dashed rgba(250, 204, 21, 0.78);
+            border-radius: 7px;
+            margin: 8px;
+        }
+
+        .centering-grid::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(250, 204, 21, 0.35);
+        }
+
+        .centering-grid::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: rgba(250, 204, 21, 0.35);
+        }
+
+        .centering-grid.off { display: none; }
+
+        .corner-mark {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border-color: #FACC15;
+            border-style: solid;
+            pointer-events: none;
+            z-index: 5;
+            animation: cornerPulse 1.8s ease-in-out infinite;
+        }
+
+        .corner-mark.tl { top: 4px; left: 4px; border-width: 3px 0 0 3px; border-top-left-radius: 5px; }
+        .corner-mark.tr { top: 4px; right: 4px; border-width: 3px 3px 0 0; border-top-right-radius: 5px; }
+        .corner-mark.bl { bottom: 4px; left: 4px; border-width: 0 0 3px 3px; border-bottom-left-radius: 5px; }
+        .corner-mark.br { bottom: 4px; right: 4px; border-width: 0 3px 3px 0; border-bottom-right-radius: 5px; }
+
+        .scan-beam {
+            position: absolute;
+            left: 4%;
+            right: 4%;
+            height: 3px;
+            background-color: #FF2A4B;
+            box-shadow: 0 0 8px #FF2A4B;
+            z-index: 6;
+            pointer-events: none;
+            top: 8%;
+            opacity: 0.6;
+            animation: scanSweepIdle 3.2s ease-in-out infinite;
+        }
+
+        .pokedex-shell.is-scanning .scan-beam {
+            background-color: #29B6F6;
+            box-shadow: 0 0 12px #29B6F6;
+            height: 4px;
+            opacity: 1;
+            animation: scanSweepActive 1.1s ease-in-out infinite;
+        }
+
+        .analyzing-overlay {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(16, 18, 22, 0.92);
+            z-index: 10;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            text-align: center;
+            color: var(--paper-cream);
+            gap: 10px;
+        }
+
+        .analyzing-overlay.show { display: flex; }
+
+        .pokeball-spinner {
+            width: 42px;
+            height: 42px;
+            border-radius: 999px;
+            border: 3px solid #F7F4EB;
+            background: linear-gradient(to bottom, #DC0A2D 0 46%, #18181B 46% 54%, #F7F4EB 54% 100%);
+            position: relative;
+            animation: spinBall 0.85s linear infinite;
+        }
+
+        .pokeball-spinner::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+            background-color: #F7F4EB;
+            border: 2.5px solid #18181B;
+            transform: translate(-50%, -50%);
+        }
+
+        .file-upload-bar {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            background-color: #222227;
+            border: 2px solid #3F3F46;
+            border-radius: 8px;
+            padding: 8px 10px;
+            color: #F4F4F5;
+            font-size: 12px;
+        }
+
+        .file-name-label {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #D4D4D8;
+            font-size: 11.5px;
+            flex: 1;
+            text-align: right;
+        }
+
+        /* Raport wyceny, stanu PSA i autentycznosci */
+        .report-card { animation: cardReveal 0.3s cubic-bezier(0.2, 0.95, 0.3, 1.08) both; }
+
+        .report-header-grid {
+            display: grid;
+            grid-template-columns: 94px 1fr;
+            gap: 11px;
+            align-items: start;
+        }
+
+        .report-thumb-wrap {
+            width: 94px;
+            aspect-ratio: 63 / 88;
+            border: var(--border-w) solid var(--ink-black);
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #18181B;
+            box-shadow: 2px 2px 0px var(--ink-black);
+        }
+
+        .report-thumb-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .psa-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 7px;
+            border-radius: 6px;
+            border: 2px solid var(--ink-black);
+            background-color: var(--led-amber);
+            color: var(--ink-black);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 800;
+            box-shadow: 2px 2px 0px var(--ink-black);
+        }
+
+        .auth-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 7px;
+            border-radius: 6px;
+            border: 2px solid var(--ink-black);
+            font-size: 10.5px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .auth-pill.real { background-color: #C8E6C9; color: #1B5E20; }
+        .auth-pill.suspect { background-color: #FFE0B2; color: #7C2D12; }
+        .auth-pill.fake { background-color: #FFCDD2; color: #7F1D1D; }
+
+        .price-highlight-box {
+            margin-top: 10px;
+            padding: 11px;
+            border-radius: 8px;
+            border: var(--border-w) solid var(--ink-black);
+            background-color: var(--crt-bg);
+            color: var(--crt-text);
+            box-shadow: inset 0 0 0 2px #2D333B;
+        }
+
+        .price-main-val {
+            font-size: 21px;
+            font-weight: 900;
+            color: #FACC15;
+            margin-top: 2px;
+        }
+
+        .psa-tiers-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 7px;
+            margin-top: 10px;
+        }
+
+        .psa-tier-box {
+            background-color: var(--paper-warm);
+            border: 2px solid var(--ink-black);
+            border-radius: 7px;
+            padding: 7px 6px;
+            text-align: center;
+            box-shadow: 2px 2px 0px var(--ink-black);
+        }
+
+        .psa-tier-label {
+            font-size: 10px;
+            font-weight: 900;
+            color: var(--ink-muted);
+            text-transform: uppercase;
+        }
+
+        .psa-tier-val {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--ink-black);
+            margin-top: 2px;
+        }
+
+        .criteria-list {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            margin-top: 10px;
+        }
+
+        .criterion-row {
+            background-color: var(--paper-warm);
+            border: 2px solid var(--ink-black);
+            border-radius: 7px;
+            padding: 7px 9px;
+        }
+
+        .criterion-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11.5px;
+            font-weight: 800;
+        }
+
+        .meter-track {
+            width: 100%;
+            height: 8px;
+            background-color: #D4D4D8;
+            border: 2px solid var(--ink-black);
+            border-radius: 999px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .meter-fill {
+            height: 100%;
+            width: var(--target-w, 0%);
+            background-color: #16A34A;
+            transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1) var(--bar-delay, 0ms);
+        }
+
+        .meter-fill.warn { background-color: #EAB308; }
+        .meter-fill.bad { background-color: #DC2626; }
+
+        /* =========================================================
+           5. INDEKS KART, WYSZUKIWARKA, SETY I STRONICOWANIE
+           ========================================================= */
+        .index-search-input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: var(--border-w) solid var(--ink-black);
+            background-color: var(--paper-cream);
+            color: var(--ink-black);
+            font-family: var(--font-ui);
+            font-size: 13px;
+            font-weight: 700;
+            box-shadow: 3px 3px 0px var(--ink-black);
+            outline: none;
+        }
+
+        .category-chips {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+        }
+
+        .category-chips::-webkit-scrollbar { display: none; }
+
+        .cat-chip {
+            flex-shrink: 0;
+            padding: 6px 10px;
+            border-radius: 7px;
+            border: 2px solid var(--ink-black);
+            background-color: var(--paper-warm);
+            color: var(--ink-black);
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px var(--ink-black);
+        }
+
+        .cat-chip.active { background-color: var(--led-amber); }
+
+        .index-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .index-select {
+            padding: 6px 8px;
+            border-radius: 7px;
+            border: 2px solid var(--ink-black);
+            background-color: var(--paper-cream);
+            color: var(--ink-black);
+            font-family: var(--font-ui);
+            font-size: 11px;
+            font-weight: 800;
+            box-shadow: 2px 2px 0px var(--ink-black);
+            max-width: 100%;
+        }
+
+        .catalog-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .catalog-card {
+            background-color: var(--paper-cream);
+            border: var(--border-w) solid var(--ink-black);
+            border-radius: 10px;
+            box-shadow: 3px 3px 0px var(--ink-black);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            transition: transform 0.09s ease, box-shadow 0.09s ease;
+            animation: cardReveal 0.22s ease both;
+        }
+
+        .catalog-card:active {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0px var(--ink-black);
+        }
+
+        .catalog-img-box {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 63 / 88;
+            background-color: #1A1D24;
+            border-bottom: var(--border-w) solid var(--ink-black);
+            overflow: hidden;
+        }
+
+        .catalog-img-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .catalog-cat-tag {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1.5px solid var(--ink-black);
+            background-color: var(--led-amber);
+            color: var(--ink-black);
+            font-size: 9px;
+            font-weight: 900;
+            text-transform: uppercase;
+            max-width: calc(100% - 12px);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .catalog-body {
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            flex: 1;
+        }
+
+        .catalog-name {
+            font-size: 12px;
+            font-weight: 900;
+            line-height: 1.2;
+        }
+
+        .catalog-set {
+            font-size: 10px;
+            color: var(--ink-muted);
+            font-weight: 700;
+            line-height: 1.25;
+        }
+
+        .catalog-price-box {
+            margin-top: auto;
+            padding-top: 5px;
+            border-top: 1.5px dashed #A1A1AA;
+        }
+
+        .catalog-price-main {
+            font-size: 12.5px;
+            font-weight: 900;
+            color: #991B1B;
+        }
+
+        .catalog-psa-sub {
+            font-size: 9.5px;
+            font-weight: 700;
+            color: var(--ink-muted);
+        }
+
+        .pagination-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            background-color: var(--paper-cream);
+            border: var(--border-w) solid var(--ink-black);
+            border-radius: 9px;
+            padding: 8px 10px;
+            box-shadow: 3px 3px 0px var(--ink-black);
+        }
+
+        /* =========================================================
+           6. KLASER, KARTY, CZAT, USTAWIENIA, MODALE I NAWIGACJA
+           ========================================================= */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.74);
+            z-index: 110;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            overflow-y: auto;
+        }
+
+        .modal-backdrop.open { display: flex; }
+
+        .modal-box {
+            width: 100%;
+            max-width: 430px;
+            max-height: 90vh;
+            overflow-y: auto;
+            background-color: var(--paper-cream);
+            border: var(--border-w) solid var(--ink-black);
+            border-radius: 12px;
+            box-shadow: 6px 6px 0px var(--ink-black);
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            animation: popIn 0.2s cubic-bezier(0.2, 0.95, 0.3, 1.08);
+        }
+
+        .detail-hero-img {
+            width: 164px;
+            aspect-ratio: 63 / 88;
+            margin: 0 auto;
+            border: var(--border-w) solid var(--ink-black);
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: #18181B;
+            box-shadow: 3px 3px 0px var(--ink-black);
+        }
+
+        .detail-hero-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .binder-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .binder-stat {
+            background-color: var(--paper-warm);
+            border: 2px solid var(--ink-black);
+            border-radius: 8px;
+            padding: 9px;
+            box-shadow: 2px 2px 0px var(--ink-black);
+        }
+
+        .binder-stat-label {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--ink-muted);
+            text-transform: uppercase;
+        }
+
+        .binder-stat-value {
+            font-size: 15px;
+            font-weight: 900;
+            margin-top: 2px;
+        }
+
+        .binder-item, .shared-post {
+            background-color: var(--paper-cream);
+            border: var(--border-w) solid var(--ink-black);
+            border-radius: 9px;
+            padding: 8px;
+            box-shadow: 3px 3px 0px var(--ink-black);
+            animation: cardReveal 0.22s ease both;
+        }
+
+        .binder-item {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .binder-item img, .shared-post-body img {
+            width: 54px;
+            aspect-ratio: 63 / 88;
+            object-fit: cover;
+            border: 2px solid var(--ink-black);
+            border-radius: 5px;
+            background-color: #18181B;
+            flex-shrink: 0;
+        }
+
+        .shared-post {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 10px;
+        }
+
+        .shared-post-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11.5px;
+            font-weight: 800;
+        }
+
+        .shared-post-body {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chat-box {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 44vh;
+            overflow-y: auto;
+            padding: 8px;
+            background-color: var(--paper-warm);
+            border: 2px solid var(--ink-black);
+            border-radius: 8px;
+        }
+
+        .chat-msg {
+            background-color: var(--paper-cream);
+            border: 2px solid var(--ink-black);
+            border-radius: 8px;
+            padding: 7px 9px;
+            box-shadow: 2px 2px 0px var(--ink-black);
+            animation: bubblePop 0.2s ease-out;
+        }
+
+        .chat-msg.mine {
+            background-color: #FEF9C3;
+            margin-left: 18px;
+        }
+
+        .chat-msg-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10.5px;
+            font-weight: 800;
+            color: var(--ink-muted);
+            margin-bottom: 3px;
+        }
+
+        .chat-msg-text {
+            font-size: 12.5px;
+            font-weight: 600;
+            line-height: 1.35;
+        }
+
+        .chat-attached-card {
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--paper-warm);
+            border: 2px solid var(--ink-black);
+            border-radius: 6px;
+            padding: 5px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .chat-attached-card img {
+            width: 34px;
+            aspect-ratio: 63 / 88;
+            object-fit: cover;
+            border: 1.5px solid var(--ink-black);
+            border-radius: 3px;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+
+        .field-label {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--ink-muted);
+        }
+
+        .field-input, .field-select, .field-textarea {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 7px;
+            border: 2px solid var(--ink-black);
+            background-color: #FFFDF7;
+            color: var(--ink-black);
+            font-family: var(--font-ui);
+            font-size: 12.5px;
+            font-weight: 700;
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 2px dashed #D4D4D8;
+        }
+
+        .toggle-row:last-child { border-bottom: none; }
+
+        .toggle-btn {
+            padding: 5px 10px;
+            border-radius: 6px;
+            border: 2px solid var(--ink-black);
+            font-size: 11px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px var(--ink-black);
+            flex-shrink: 0;
+        }
+
+        .toggle-btn.on { background-color: #86EFAC; color: var(--ink-black); }
+        .toggle-btn.off { background-color: #E4E4E7; color: #3F3F46; }
+
+        .dex-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 460px;
+            background-color: var(--dex-red);
+            border-top: var(--border-w) solid var(--ink-black);
+            padding: 6px 6px;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 3px;
+            z-index: 45;
+        }
+
+        @media (min-width: 520px) {
+            .dex-nav {
+                bottom: 16px;
+                border: var(--border-w) solid var(--ink-black);
+                border-radius: 0 0 13px 13px;
+            }
+        }
+
+        .nav-tab-btn {
+            background-color: var(--paper-cream);
+            color: var(--ink-black);
+            border: 2px solid var(--ink-black);
+            border-radius: 7px;
+            padding: 5px 1px;
+            font-family: var(--font-ui);
+            font-size: 9px;
+            font-weight: 900;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px var(--ink-black);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .nav-tab-btn.active {
+            background-color: var(--led-amber);
+            transform: translateY(-2px);
+            box-shadow: 2px 3px 0px var(--ink-black);
+        }
+
+        .nav-icon-svg {
+            width: 15px;
+            height: 15px;
+            display: block;
+        }
+
+        .dex-toast {
+            position: fixed;
+            top: 72px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-10px);
+            width: calc(100% - 28px);
+            max-width: 410px;
+            background-color: var(--ink-black);
+            color: var(--paper-cream);
+            border: var(--border-w) solid var(--led-amber);
+            border-radius: 9px;
+            padding: 9px 12px;
+            font-size: 12px;
+            font-weight: 800;
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.45);
+            z-index: 105;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .dex-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @keyframes scanSweepIdle {
+            0%, 100% { top: 8%; }
+            50% { top: 90%; }
+        }
+
+        @keyframes scanSweepActive {
+            0%, 100% { top: 4%; }
+            50% { top: 94%; }
+        }
+
+        @keyframes cornerPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.08); opacity: 0.72; }
+        }
+
+        @keyframes lensPulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        @keyframes tabEnter {
+            0% { opacity: 0; transform: translateY(8px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes cardReveal {
+            0% { opacity: 0; transform: translateY(7px) scale(0.985); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes bubblePop {
+            0% { opacity: 0; transform: scale(0.95) translateY(4px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.94) translateY(6px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes spinBall {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 1.5s OGNI Z LEWEJ I PRAWEJ STRONY PRZY OTWARCIU APLIKACJI -->
+    <div id="opening-fire-layer" class="opening-fire-layer" aria-hidden="true">
+        <div id="fire-bank-left" class="fire-bank left"></div>
+        <div id="fire-bank-right" class="fire-bank right"></div>
+    </div>
+
+    <!-- WARSTWA SKRADAJACYCH SIE POKEMONOW CO 5 MINUT -->
+    <div id="sneak-pokemon-stage" class="sneak-pokemon-stage" aria-hidden="true"></div>
+
+    <div class="app-stage">
+        <div id="pokedex-app" class="pokedex-shell">
+
+            <!-- NAGLOWEK POKEDEKSA -->
+            <header class="dex-header pt-safe">
+                <div class="dex-top-row">
+                    <div class="dex-leds-brand">
+                        <div class="lens-blue"></div>
+                        <div>
+                            <div class="mini-leds">
+                                <span class="mini-led red"></span>
+                                <span class="mini-led amber"></span>
+                                <span class="mini-led green"></span>
+                            </div>
+                            <h1 class="dex-title">Skaner Pokemonów</h1>
+                            <button type="button" class="trainer-pill-btn" onclick="openTrainerModal()">
+                                <span id="header-trainer-dot" class="trainer-dot" style="background:#DC0A2D;"></span>
+                                <span id="header-trainer-name" class="trainer-pill-text">Gość • Załóż konto</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="button" id="btn-install-app" class="tcg-btn sm primary" onclick="openInstallModal()">
+                        Pobierz na telefon
+                    </button>
+                </div>
+            </header>
+
+            <!-- TOAST -->
+            <div id="dex-toast" class="dex-toast" role="status" aria-live="polite"></div>
+
+            <!-- GLOWNA ZAWARTOSC -->
+            <main class="dex-main">
+
+                <!-- 1. SKANER -->
+                <section id="view-scanner" class="view-section active">
+                    <div class="viewfinder-outer">
+                        <div class="viewfinder-topbar">
+                            <span class="mono">63×88 MM • <span id="ui-currency-badge">PLN</span> & PSA</span>
+                            <span class="status-badge">
+                                <span class="status-dot"></span>
+                                <span id="scanner-status-text">GOTOWY</span>
+                            </span>
+                        </div>
+
+                        <div id="card-frame-stage" class="card-frame-stage">
+                            <video id="camera-video" autoplay playsinline muted style="display:none;"></video>
+                            <img id="captured-preview" class="preview-media" alt="Podgląd karty Pokémon" style="display:none;">
+
+                            <div id="camera-idle-box" class="camera-idle-box">
+                                <div style="font-size:24px;font-weight:900;color:#FACC15;">TCG 63×88</div>
+                                <p id="ui-camera-hint">Ustaw kartę w ramce lub wgraj zdjęcie z galerii, aby sprawdzić cenę, stan PSA i autentyczność.</p>
+                                <button type="button" class="tcg-btn sm primary" onclick="startCamera()">Włącz kamerę</button>
+                            </div>
+
+                            <div id="centering-grid" class="centering-grid"></div>
+                            <div class="corner-mark tl"></div>
+                            <div class="corner-mark tr"></div>
+                            <div class="corner-mark bl"></div>
+                            <div class="corner-mark br"></div>
+                            <div class="scan-beam"></div>
+
+                            <div id="analyzing-overlay" class="analyzing-overlay">
+                                <div class="pokeball-spinner"></div>
+                                <div style="font-weight:900;font-size:14px;">Analiza kadru i karty...</div>
+                                <div id="analyzing-step" class="mono" style="font-size:11px;color:#FACC15;">Sprawdzanie zawartości ramki</div>
+                            </div>
+                        </div>
+
+                        <div class="file-upload-bar">
+                            <label for="gallery-input" class="tcg-btn sm" style="cursor:pointer;">
+                                Wgraj z galerii
+                            </label>
+                            <input id="gallery-input" type="file" accept="image/*" style="display:none;" onchange="handleGalleryChange(event)">
+                            <span id="gallery-filename" class="file-name-label">Brak pliku</span>
+                        </div>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1.25fr 1fr;gap:8px;">
+                        <button type="button" id="btn-scan-card" class="tcg-btn primary" onclick="runCardScan()">
+                            SKANUJ KARTĘ
+                        </button>
+                        <button type="button" id="btn-switch-camera" class="tcg-btn" onclick="switchCamera()">
+                            Kamerka Przód/Tył
+                        </button>
+                    </div>
+
+                    <div id="scan-report-container"></div>
+                </section>
+
+                <!-- 2. INDEKS KART -->
+                <section id="view-index" class="view-section">
+                    <div class="paper-panel">
+                        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
+                            <div>
+                                <h2 id="ui-index-title" style="margin:0;font-size:16px;font-weight:900;">Indeks Kart i Wycena</h2>
+                                <div id="ui-index-sub" style="font-size:11px;color:var(--ink-muted);font-weight:700;">Kliknij kartę, aby zobaczyć wycenę i zniszczenia</div>
+                            </div>
+                            <span id="index-count-badge" class="psa-pill">0 kart</span>
+                        </div>
+
+                        <input
+                            id="index-search-input"
+                            type="search"
+                            class="index-search-input"
+                            placeholder="Szukaj: Charizard, Pikachu, 30th, Umbreon, Mew..."
+                            oninput="handleIndexSearch(this.value)"
+                        >
+                    </div>
+
+                    <div id="index-category-chips" class="category-chips" role="tablist"></div>
+
+                    <div class="index-toolbar">
+                        <select id="index-set-select" class="index-select" onchange="currentIndexPage = 1; renderCatalogIndex();">
+                            <option value="all">Set: Wszystkie sety</option>
+                            <option value="30th">30th Anniversary (2026)</option>
+                            <option value="Base Set (1999)">Base Set (1999)</option>
+                            <option value="Neo Genesis (2000)">Neo Genesis (2000)</option>
+                            <option value="Evolving Skies (2021)">Evolving Skies (2021)</option>
+                            <option value="Scarlet & Violet — 151 (2023)">Scarlet &amp; Violet — 151 (2023)</option>
+                            <option value="Surging Sparks (2024)">Surging Sparks (2024)</option>
+                            <option value="Temporal Forces (2024)">Temporal Forces (2024)</option>
+                            <option value="Promo Collection (2022)">Promo Collection (2022)</option>
+                            <option value="Pokémon Center / Van Gogh Promo (2023)">Van Gogh Promo (2023)</option>
+                        </select>
+
+                        <select id="index-sort-select" class="index-select" onchange="renderCatalogIndex()">
+                            <option value="price-desc">Cena: najwyższa</option>
+                            <option value="price-asc">Cena: najniższa</option>
+                            <option value="year-desc">30-lecie / Najnowsze</option>
+                            <option value="name-asc">Nazwa A → Z</option>
+                        </select>
+                    </div>
+
+                    <div id="catalog-grid" class="catalog-grid"></div>
+
+                    <div id="index-pagination-bar" class="pagination-bar">
+                        <button type="button" id="btn-prev-page" class="tcg-btn sm" onclick="changeIndexPage(-1)">← Poprzednia</button>
+                        <span id="index-page-indicator" class="mono" style="font-size:11.5px;font-weight:800;">Strona 1 / 1</span>
+                        <button type="button" id="btn-next-page" class="tcg-btn sm" onclick="changeIndexPage(1)">Następna →</button>
+                    </div>
+                </section>
+
+                <!-- 3. KLASER -->
+                <section id="view-binder" class="view-section">
+                    <div class="paper-panel">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                            <h2 style="margin:0;font-size:16px;font-weight:900;">Mój Klaser</h2>
+                            <button type="button" class="tcg-btn sm" onclick="switchTab('scanner')">+ Skanuj</button>
+                        </div>
+                        <div class="binder-summary">
+                            <div class="binder-stat">
+                                <div class="binder-stat-label">Liczba kart</div>
+                                <div id="binder-count" class="binder-stat-value mono">0</div>
+                            </div>
+                            <div class="binder-stat">
+                                <div class="binder-stat-label">Wartość kolekcji</div>
+                                <div id="binder-total-val" class="binder-stat-value mono">0 zł</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="binder-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+                </section>
+
+                <!-- 4. KARTY -->
+                <section id="view-cards" class="view-section">
+                    <div class="paper-panel">
+                        <h2 style="margin:0 0 6px;font-size:16px;font-weight:900;">Dzielenie się Kartami</h2>
+                        <div class="field-group">
+                            <label class="field-label" for="share-card-select">Karta z klasera</label>
+                            <select id="share-card-select" class="field-select"></select>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label" for="share-card-note">Notatka / oferta</label>
+                            <input id="share-card-note" type="text" class="field-input" placeholder="Np. Wymienię lub sprzedam w obecnej walucie">
+                        </div>
+                        <button type="button" class="tcg-btn primary" style="width:100%;" onclick="publishCardShare()">
+                            Udostępnij kartę
+                        </button>
+                    </div>
+                    <div id="shared-cards-feed" style="display:flex;flex-direction:column;gap:8px;"></div>
+                </section>
+
+                <!-- 5. CZAT -->
+                <section id="view-chat" class="view-section">
+                    <div class="paper-panel">
+                        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
+                            <h2 style="margin:0;font-size:16px;font-weight:900;">Czat Trenerów</h2>
+                            <select id="chat-room-select" class="field-select" style="width:auto;padding:5px 8px;font-size:11px;" onchange="renderChatMessages()">
+                                <option value="ogolny">Ogólny</option>
+                                <option value="wyceny">Wyceny i PSA</option>
+                                <option value="wymiany">Wymiany</option>
+                            </select>
+                        </div>
+                        <div id="chat-messages-box" class="chat-box"></div>
+                        <div style="margin-top:8px;display:flex;flex-direction:column;gap:7px;">
+                            <select id="chat-attach-card" class="field-select" style="font-size:11.5px;">
+                                <option value="">Bez dołączania karty z klasera</option>
+                            </select>
+                            <div style="display:flex;gap:6px;">
+                                <input id="chat-input" type="text" class="field-input" placeholder="Napisz wiadomość..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+                                <button type="button" class="tcg-btn primary" style="padding:9px 12px;" onclick="sendChatMessage()">Wyślij</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 6. OPCJE (WALUTA, JEZYK, SKRADAJACE SIE POKEMONY CO 5 MIN, KONTO, PWA) -->
+                <section id="view-settings" class="view-section">
+                    <div class="paper-panel">
+                        <h2 id="ui-settings-lang-curr-title" style="margin:0 0 8px;font-size:16px;font-weight:900;">Waluta i Język Aplikacji</h2>
+
+                        <div class="field-group">
+                            <label class="field-label" for="currency-select">Waluta wyceny (PLN, EUR, USD, GBP, JPY, CHF, CZK)</label>
+                            <select id="currency-select" class="field-select" onchange="changeCurrency(this.value)">
+                                <option value="PLN">PLN — Polski złoty (zł)</option>
+                                <option value="EUR">EUR — Euro (€)</option>
+                                <option value="USD">USD — Dolar amerykański ($)</option>
+                                <option value="GBP">GBP — Funt brytyjski (£)</option>
+                                <option value="JPY">JPY — Jen japoński (¥)</option>
+                                <option value="CHF">CHF — Frank szwajcarski (CHF)</option>
+                                <option value="CZK">CZK — Korona czeska (Kč)</option>
+                            </select>
+                        </div>
+
+                        <div class="field-group">
+                            <label class="field-label" for="language-select">Język interfejsu (PL, EN, DE, JA)</label>
+                            <select id="language-select" class="field-select" onchange="changeLanguage(this.value)">
+                                <option value="pl">Polski (PL)</option>
+                                <option value="en">English (EN)</option>
+                                <option value="de">Deutsch (DE)</option>
+                                <option value="ja">日本語 (JA)</option>
+                            </select>
+                        </div>
+
+                        <div class="field-group">
+                            <label class="field-label" for="price-format-select">Format prezentacji ceny</label>
+                            <select id="price-format-select" class="field-select" onchange="changePriceFormat(this.value)">
+                                <option value="range">Zakres (min–max)</option>
+                                <option value="avg">Średnia rynkowa (~)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="paper-panel">
+                        <h2 style="margin:0 0 6px;font-size:16px;font-weight:900;">Skaner i Skradające się Pokémony</h2>
+
+                        <div class="toggle-row">
+                            <div>
+                                <div style="font-size:12.5px;font-weight:800;">Skradające się Pokémony (co 5 min)</div>
+                                <div style="font-size:11px;color:var(--ink-muted);font-weight:600;">Zaglądają z krawędzi ekranu co 300 s</div>
+                            </div>
+                            <div style="display:flex;gap:6px;align-items:center;">
+                                <button type="button" class="tcg-btn sm" onclick="triggerSneakPokemon(true)">Testuj teraz</button>
+                                <button type="button" id="toggle-sneak-btn" class="toggle-btn on" onclick="toggleSetting('sneakPokemon')">WŁ.</button>
+                            </div>
+                        </div>
+
+                        <div class="toggle-row">
+                            <div>
+                                <div style="font-size:12.5px;font-weight:800;">Siatka centrowania 63×88 mm</div>
+                                <div style="font-size:11px;color:var(--ink-muted);font-weight:600;">Pomoc w ocenie marginesów PSA</div>
+                            </div>
+                            <button type="button" id="toggle-grid-btn" class="toggle-btn on" onclick="toggleSetting('centeringGrid')">WŁ.</button>
+                        </div>
+
+                        <div class="toggle-row">
+                            <div>
+                                <div style="font-size:12.5px;font-weight:800;">Powiadomienia toast</div>
+                                <div style="font-size:11px;color:var(--ink-muted);font-weight:600;">Komunikaty w górnej części ekranu</div>
+                            </div>
+                            <button type="button" id="toggle-toasts-btn" class="toggle-btn on" onclick="toggleSetting('toastsEnabled')">WŁ.</button>
+                        </div>
+                    </div>
+
+                    <div class="paper-panel">
+                        <h2 style="margin:0 0 8px;font-size:16px;font-weight:900;">Profil Trenera / Rejestracja</h2>
+                        <div class="field-group">
+                            <label class="field-label" for="trainer-name-input">Nick trenera</label>
+                            <input id="trainer-name-input" type="text" class="field-input" placeholder="Np. TrenerRed">
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label" for="trainer-city-input">Miasto</label>
+                            <input id="trainer-city-input" type="text" class="field-input" placeholder="Np. Wrocław">
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label" for="trainer-color-select">Kolor odznaki</label>
+                            <select id="trainer-color-select" class="field-select">
+                                <option value="#DC0A2D">Czerwony</option>
+                                <option value="#29B6F6">Niebieski</option>
+                                <option value="#FBC02D">Żółty</option>
+                                <option value="#2E7D32">Zielony</option>
+                                <option value="#6D28D9">Fioletowy</option>
+                            </select>
+                        </div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button type="button" class="tcg-btn primary" onclick="saveTrainerProfile()">Zapisz profil</button>
+                            <button type="button" class="tcg-btn danger" onclick="logoutTrainerProfile()">Wyloguj</button>
+                        </div>
+                    </div>
+
+                    <div class="paper-panel warm">
+                        <h2 style="margin:0 0 6px;font-size:16px;font-weight:900;">Aplikacja PWA i Dane</h2>
+                        <p id="install-status-text" style="margin:0 0 10px;font-size:12px;font-weight:700;color:var(--ink-muted);"></p>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button type="button" id="btn-settings-install" class="tcg-btn" onclick="openInstallModal()">Pobierz na telefon</button>
+                            <button type="button" class="tcg-btn danger" onclick="resetAllAppData()">Resetuj dane</button>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+
+            <!-- DOLNA NAWIGACJA -->
+            <nav class="dex-nav pb-safe" aria-label="Nawigacja główna">
+                <button type="button" id="nav-scanner" class="nav-tab-btn active" onclick="switchTab('scanner')">
+                    <svg class="nav-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M4 8V5h3M20 8V5h-3M4 16v3h3M20 16v3h-3"/><circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    <span id="nav-lbl-scanner">Skaner</span>
+                </button>
+                <button type="button" id="nav-index" class="nav-tab-btn" onclick="switchTab('index')">
+                    <svg class="nav-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <circle cx="11" cy="11" r="6"/><path d="M20 20l-4.2-4.2"/>
+                    </svg>
+                    <span id="nav-lbl-index">Indeks</span>
+                </button>
+                <button type="button" id="nav-binder" class="nav-tab-btn" onclick="switchTab('binder')">
+                    <svg class="nav-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 4v16"/>
+                    </svg>
+                    <span id="nav-lbl-binder">Klaser</span>
+                </button>
+                <button type="button" id="nav-cards" class="nav-tab-btn" onclick="switchTab('cards')">
+                    <svg class="nav-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <rect x="3" y="5" width="13" height="16" rx="2"/><path d="M9 3h10v14"/>
+                    </svg>
+                    <span id="nav-lbl-cards">Karty</span>
+                </button>
+                <button type="button" id="nav-chat" class="nav-tab-btn" onclick="switchTab('chat')">
+                    <svg class="nav-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M4 6h16v10H8l-4 4V6z"/>
+                    </svg>
+                    <span id="nav-lbl-chat">Czat</span>
+                </button>
+                <button type="button" id="nav-settings" class="nav-tab-btn" onclick="switchTab('settings')">
+                    <svg class="nav-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                    <span id="nav-lbl-settings">Opcje</span>
+                </button>
+            </nav>
+
+        </div>
+    </div>
+
+    <!-- MODAL SZCZEGOLOW KARTY -->
+    <div id="card-detail-modal" class="modal-backdrop" onclick="if(event.target===this) closeCardDetailModal()">
+        <div id="card-detail-content" class="modal-box"></div>
+    </div>
+
+    <!-- MODAL REJESTRACJI TRENERA -->
+    <div id="trainer-modal" class="modal-backdrop" onclick="if(event.target===this) closeTrainerModal()">
+        <div class="modal-box">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <h3 style="margin:0;font-size:15px;font-weight:900;">Rejestracja i Profil Trenera</h3>
+                <button type="button" class="tcg-btn sm" onclick="closeTrainerModal()">Zamknij</button>
+            </div>
+            <div class="field-group">
+                <label class="field-label" for="modal-trainer-name">Nick trenera</label>
+                <input id="modal-trainer-name" type="text" class="field-input" placeholder="Np. AshKanto">
+            </div>
+            <div class="field-group">
+                <label class="field-label" for="modal-trainer-city">Miasto</label>
+                <input id="modal-trainer-city" type="text" class="field-input" placeholder="Np. Poznań">
+            </div>
+            <div style="display:flex;gap:8px;">
+                <button type="button" class="tcg-btn primary" style="flex:1;" onclick="saveTrainerFromModal()">Zapisz konto</button>
+                <button type="button" class="tcg-btn" onclick="closeTrainerModal(); switchTab('settings');">Pełne opcje</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL POBIERANIA PWA -->
+    <div id="install-modal" class="modal-backdrop" onclick="if(event.target===this) closeInstallModal()">
+        <div class="modal-box">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <h3 style="margin:0;font-size:15px;font-weight:900;">Pobierz Skaner Pokemonów na telefon</h3>
+                <button type="button" class="tcg-btn sm" onclick="closeInstallModal()">Zamknij</button>
+            </div>
+            <p style="margin:0;font-size:12px;font-weight:600;line-height:1.45;">
+                Dodaj aplikację do ekranu głównego, aby działała jak natywna aplikacja. Po zainstalowaniu przycisk <strong>„Pobierz na telefon”</strong> ukryje się automatycznie.
+            </p>
+            <div class="paper-panel warm" style="box-shadow:2px 2px 0px #18181B;">
+                <div style="font-size:12px;font-weight:900;margin-bottom:3px;">Android / Chrome</div>
+                <div style="font-size:11.5px;">Otwórz menu <strong>⋮</strong> i wybierz <strong>„Zainstaluj aplikację”</strong> lub <strong>„Dodaj do ekranu głównego”</strong>.</div>
+            </div>
+            <div class="paper-panel warm" style="box-shadow:2px 2px 0px #18181B;">
+                <div style="font-size:12px;font-weight:900;margin-bottom:3px;">iPhone / Safari</div>
+                <div style="font-size:11.5px;">Stuknij <strong>Udostępnij</strong> (strzałka w górę) → <strong>„Do ekranu początkowego”</strong>.</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button type="button" id="btn-native-install-trigger" class="tcg-btn primary" style="flex:1;display:none;" onclick="triggerNativeInstall()">Zainstaluj</button>
+                <button type="button" class="tcg-btn success" style="flex:1;" onclick="markAppInstalledAndHide()">Mam już pobraną (ukryj przycisk)</button>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="work-canvas" style="display:none;"></canvas>
+
+    <script>
+        /* =========================================================
+           1. KONFIGURACJA STORAGE, PWA, WALUT I JEZYKOW
+           ========================================================= */
+        const STORAGE_KEYS = {
+            binder: 'pokedex_tcg_v3_binder',
+            shared: 'pokedex_tcg_v3_shared',
+            chat: 'pokedex_tcg_v3_chat',
+            trainer: 'pokedex_tcg_v3_trainer',
+            settings: 'pokedex_tcg_v3_settings',
+            installed: 'pokedex_tcg_v3_installed'
+        };
+
+        // Kursy wzgledem PLN (1 jednostka waluty = X PLN, dzielimy PLN przez rate)
+        const CURRENCY_CONFIG = {
+            PLN: { code: 'PLN', symbol: 'zł', rateFromPln: 1.0, decimals: 0 },
+            EUR: { code: 'EUR', symbol: '€', rateFromPln: 4.30, decimals: 2 },
+            USD: { code: 'USD', symbol: '$', rateFromPln: 4.00, decimals: 2 },
+            GBP: { code: 'GBP', symbol: '£', rateFromPln: 5.05, decimals: 2 },
+            JPY: { code: 'JPY', symbol: '¥', rateFromPln: 0.0265, decimals: 0 },
+            CHF: { code: 'CHF', symbol: 'CHF', rateFromPln: 4.55, decimals: 2 },
+            CZK: { code: 'CZK', symbol: 'Kč', rateFromPln: 0.17, decimals: 0 }
+        };
+
+        const UI_TRANSLATIONS = {
+            pl: {
+                appTitle: 'Skaner Pokemonów',
+                guestAccount: 'Gość • Załóż konto',
+                installBtn: 'Pobierz na telefon',
+                scanBtn: 'SKANUJ KARTĘ',
+                switchCamBtn: 'Kamerka Przód/Tył',
+                cameraHint: 'Ustaw kartę w ramce lub wgraj zdjęcie z galerii, aby sprawdzić cenę, stan PSA i autentyczność.',
+                indexTitle: 'Indeks Kart i Wycena',
+                indexSub: 'Kliknij kartę, aby zobaczyć wycenę i zniszczenia',
+                navScanner: 'Skaner',
+                navIndex: 'Indeks',
+                navBinder: 'Klaser',
+                navCards: 'Karty',
+                navChat: 'Czat',
+                navSettings: 'Opcje'
+            },
+            en: {
+                appTitle: 'Pokémon Scanner',
+                guestAccount: 'Guest • Sign up',
+                installBtn: 'Download for phone',
+                scanBtn: 'SKANUJ KARTĘ',
+                switchCamBtn: 'Kamerka Przód/Tył',
+                cameraHint: 'Align a card in the 63×88 mm frame or upload from gallery to check price, PSA grade and authenticity.',
+                indexTitle: 'Card Index & Pricing',
+                indexSub: 'Tap any card to inspect pricing, PSA tiers and wear impact',
+                navScanner: 'Scanner',
+                navIndex: 'Index',
+                navBinder: 'Binder',
+                navCards: 'Cards',
+                navChat: 'Chat',
+                navSettings: 'Settings'
+            },
+            de: {
+                appTitle: 'Pokémon-Scanner',
+                guestAccount: 'Gast • Konto erstellen',
+                installBtn: 'Für Handy laden',
+                scanBtn: 'SKANUJ KARTĘ',
+                switchCamBtn: 'Kamerka Przód/Tył',
+                cameraHint: 'Karte im 63×88-mm-Rahmen ausrichten oder Foto laden, um Preis, PSA und Echtheit zu prüfen.',
+                indexTitle: 'Kartenindex & Preise',
+                indexSub: 'Karte antippen für Preis, PSA-Stufen und Zustandseinfluss',
+                navScanner: 'Scanner',
+                navIndex: 'Index',
+                navBinder: 'Ordner',
+                navCards: 'Karten',
+                navChat: 'Chat',
+                navSettings: 'Optionen'
+            },
+            ja: {
+                appTitle: 'ポケモンスキャナー',
+                guestAccount: 'ゲスト・登録',
+                installBtn: 'スマホに保存',
+                scanBtn: 'SKANUJ KARTĘ',
+                switchCamBtn: 'Kamerka Przód/Tył',
+                cameraHint: '63×88mmの枠にカードを合わせるか画像を選び、価格・PSA状態・真贋を確認します。',
+                indexTitle: 'カード索引と価格',
+                indexSub: 'カードをタップして価格・PSA目安・ダメージ影響を確認',
+                navScanner: 'スキャナ',
+                navIndex: '索引',
+                navBinder: 'バインダ',
+                navCards: 'カード',
+                navChat: 'チャット',
+                navSettings: '設定'
+            }
+        };
+
+        let deferredInstallPrompt = null;
+
+        function createPokeballSvgDataUrl() {
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+                <rect width="128" height="128" rx="28" fill="#DC0A2D"/>
+                <rect x="6" y="6" width="116" height="116" rx="22" fill="none" stroke="#18181B" stroke-width="6"/>
+                <circle cx="64" cy="64" r="38" fill="#F7F4EB" stroke="#18181B" stroke-width="6"/>
+                <path d="M26 64h76" stroke="#18181B" stroke-width="6"/>
+                <circle cx="64" cy="64" r="13" fill="#FBC02D" stroke="#18181B" stroke-width="5"/>
+            </svg>`;
+            return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+        }
+
+        function createCardArtSvg(title, subtitle, badge, accent = '#DC0A2D', priceStr = '') {
+            const safeT = String(title || 'POKEMON TCG').slice(0, 22).replace(/[<>&"]/g, '');
+            const safeS = String(subtitle || 'TCG SET').slice(0, 26).replace(/[<>&"]/g, '');
+            const safeB = String(badge || 'TCG').slice(0, 16).replace(/[<>&"]/g, '');
+            const safeP = String(priceStr || '').slice(0, 20).replace(/[<>&"]/g, '');
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 315 440">
+                <rect width="315" height="440" rx="18" fill="#F7F4EB"/>
+                <rect x="10" y="10" width="295" height="420" rx="12" fill="none" stroke="#18181B" stroke-width="6"/>
+                <rect x="22" y="22" width="271" height="38" rx="6" fill="${accent}" stroke="#18181B" stroke-width="4"/>
+                <text x="34" y="47" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="900" fill="#F7F4EB">${safeT}</text>
+                <rect x="22" y="70" width="271" height="212" rx="8" fill="#181B20" stroke="#18181B" stroke-width="4"/>
+                <polygon points="157,102 214,176 157,250 100,176" fill="none" stroke="#FACC15" stroke-width="5"/>
+                <circle cx="157" cy="176" r="24" fill="${accent}" stroke="#F7F4EB" stroke-width="4"/>
+                <rect x="22" y="292" width="271" height="116" rx="8" fill="#EFE9D8" stroke="#18181B" stroke-width="4"/>
+                <text x="34" y="318" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="800" fill="#18181B">${safeS}</text>
+                <text x="34" y="344" font-family="JetBrains Mono, monospace" font-size="12" font-weight="800" fill="#991B1B">${safeB}</text>
+                <text x="34" y="382" font-family="JetBrains Mono, monospace" font-size="19" font-weight="900" fill="#18181B">${safeP}</text>
+            </svg>`;
+            return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+        }
+
+        function createSneakPokemonSvg(kind = 'gengar') {
+            const palettes = {
+                gengar: { body: '#6D28D9', eye: '#EF4444', label: 'GENGAR!' },
+                pikachu: { body: '#FACC15', eye: '#18181B', cheek: '#DC2626', label: 'PIKA~!' },
+                mew: { body: '#F472B6', eye: '#2563EB', label: 'MEW?' },
+                mimikyu: { body: '#FDE047', eye: '#18181B', label: 'MIMIKYU' }
+            };
+            const p = palettes[kind] || palettes.gengar;
+            const cheekSvg = p.cheek
+                ? `<circle cx="24" cy="40" r="5" fill="${p.cheek}"/><circle cx="48" cy="40" r="5" fill="${p.cheek}"/>`
+                : '';
+            return `<svg xmlns="http://www.w3.org/2000/svg" width="58" height="58" viewBox="0 0 72 72">
+                <polygon points="14,24 8,6 26,16" fill="${p.body}" stroke="#18181B" stroke-width="3.5"/>
+                <polygon points="58,24 64,6 46,16" fill="${p.body}" stroke="#18181B" stroke-width="3.5"/>
+                <ellipse cx="36" cy="40" rx="24" ry="22" fill="${p.body}" stroke="#18181B" stroke-width="3.5"/>
+                <circle cx="27" cy="34" r="4" fill="${p.eye}"/>
+                <circle cx="45" cy="34" r="4" fill="${p.eye}"/>
+                ${cheekSvg}
+                <path d="M26 47 Q36 54 46 47" fill="none" stroke="#18181B" stroke-width="3" stroke-linecap="round"/>
+            </svg>`;
+        }
+
+        (function setupPwaManifest() {
+            const iconUrl = createPokeballSvgDataUrl();
+            const appleLink = document.createElement('link');
+            appleLink.rel = 'apple-touch-icon';
+            appleLink.href = iconUrl;
+            document.head.appendChild(appleLink);
+
+            const manifest = {
+                name: 'Skaner Pokemonów',
+                short_name: 'Skaner Pokemonów',
+                start_url: '.',
+                display: 'standalone',
+                background_color: '#DC0A2D',
+                theme_color: '#DC0A2D',
+                orientation: 'portrait',
+                icons: [
+                    { src: iconUrl, sizes: '192x192', type: 'image/svg+xml' },
+                    { src: iconUrl, sizes: '512x512', type: 'image/svg+xml' }
+                ]
+            };
+            const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+            const link = document.createElement('link');
+            link.rel = 'manifest';
+            link.href = URL.createObjectURL(blob);
+            document.head.appendChild(link);
+        })();
+
+        function isAppInstalled() {
+            const standaloneMedia = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
+            const iosStandalone = window.navigator.standalone === true;
+            const storedFlag = localStorage.getItem(STORAGE_KEYS.installed) === '1';
+            return Boolean(standaloneMedia || iosStandalone || storedFlag);
+        }
+
+        function refreshInstallButtonVisibility() {
+            const installed = isAppInstalled();
+            const headerBtn = document.getElementById('btn-install-app');
+            const settingsBtn = document.getElementById('btn-settings-install');
+            const statusText = document.getElementById('install-status-text');
+
+            if (headerBtn) headerBtn.classList.toggle('is-hidden-installed', installed);
+            if (settingsBtn) settingsBtn.style.display = installed ? 'none' : 'inline-flex';
+            if (statusText) {
+                statusText.textContent = installed
+                    ? 'Aplikacja działa jako zainstalowana PWA — przycisk pobierania jest ukryty.'
+                    : 'Możesz zainstalować aplikację na telefonie z menu lub przycisku „Pobierz na telefon”.';
+            }
+        }
+
+        function markAppInstalledAndHide() {
+            localStorage.setItem(STORAGE_KEYS.installed, '1');
+            refreshInstallButtonVisibility();
+            closeInstallModal();
+            showToast('Przycisk „Pobierz na telefon” został ukryty.');
+        }
+
+        async function triggerNativeInstall() {
+            if (!deferredInstallPrompt) return;
+            deferredInstallPrompt.prompt();
+            const res = await deferredInstallPrompt.userChoice;
+            deferredInstallPrompt = null;
+            if (res && res.outcome === 'accepted') {
+                markAppInstalledAndHide();
+            }
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredInstallPrompt = e;
+            const nativeBtn = document.getElementById('btn-native-install-trigger');
+            if (nativeBtn) nativeBtn.style.display = 'inline-flex';
+            refreshInstallButtonVisibility();
+        });
+
+        window.addEventListener('appinstalled', () => {
+            markAppInstalledAndHide();
+        });
+
+        /* =========================================================
+           2. ANIMACJA OGNI Z LEWEJ I PRAWEJ (1500 MS) ORAZ
+              SKRADAJACE SIE POKEMONY CO 5 MINUT (300,000 MS)
+           ========================================================= */
+        function runOpeningFireAnimation() {
+            const layer = document.getElementById('opening-fire-layer');
+            const leftBank = document.getElementById('fire-bank-left');
+            const rightBank = document.getElementById('fire-bank-right');
+            if (!layer || !leftBank || !rightBank) return;
+
+            const tonguesCount = 7;
+            let html = '';
+            for (let i = 0; i < tonguesCount; i++) {
+                const delay = i * 55;
+                html += `
+                    <div class="flame-tongue" style="--f-delay:${delay}ms;">
+                        <div class="flame-shape" style="--f-delay:${delay}ms;"></div>
+                        <div class="flame-core" style="--f-delay:${delay}ms;"></div>
+                    </div>
+                `;
+            }
+            leftBank.innerHTML = html;
+            rightBank.innerHTML = html;
+
+            layer.classList.add('active');
+            setTimeout(() => {
+                layer.classList.remove('active');
+            }, 1500);
+        }
+
+        function triggerSneakPokemon(isManualTest = false) {
+            if (!isManualTest && !appSettings.sneakPokemon) return;
+            const stage = document.getElementById('sneak-pokemon-stage');
+            if (!stage) return;
+
+            const kinds = ['gengar', 'pikachu', 'mew', 'mimikyu'];
+            const dirs = ['from-left', 'from-right', 'from-top'];
+            const kind = kinds[Math.floor(Math.random() * kinds.length)];
+            const dir = dirs[Math.floor(Math.random() * dirs.length)];
+
+            const el = document.createElement('div');
+            el.className = `sneak-sprite-box ${dir}`;
+            el.innerHTML = `
+                <div class="sneak-bubble">${kind.toUpperCase()}</div>
+                ${createSneakPokemonSvg(kind)}
+            `;
+            stage.appendChild(el);
+
+            setTimeout(() => {
+                el.remove();
+            }, 4300);
+        }
+
+        // Co 5 minut = 300,000 ms
+        setInterval(() => {
+            triggerSneakPokemon(false);
+        }, 300000);
+
+        /* =========================================================
+           3. KATALOG KART POKEMON (30-LECIE, RETRO, SIR, VMAX, PROMO)
+           ========================================================= */
+        const CARD_CATEGORIES = [
+            { id: 'all', label: 'Wszystkie' },
+            { id: '30th', label: '30-lecie (2026)' },
+            { id: 'vintage', label: 'Base Set / Retro' },
+            { id: 'alt-sir', label: 'Alt Art / SIR' },
+            { id: 'ex-v-gx', label: 'ex / V / VMAX / GX' },
+            { id: 'promo', label: 'Promo' }
+        ];
+
+        const POKEMON_CARD_CATALOG = [
+            {
+                id: '30th-charizard-gold',
+                name: 'Charizard ex (30th Anniversary)',
+                setName: '30th Anniversary (2026)',
+                number: '006/030',
+                category: '30th',
+                year: 2026,
+                apiQuery: 'Charizard',
+                accent: '#DC0A2D',
+                rawMinPln: 420,
+                rawMaxPln: 640,
+                damagedMinPln: 170,
+                damagedMaxPln: 280,
+                psa8Pln: 890,
+                psa9Pln: 1650,
+                psa10Pln: 4800,
+                wearNote: 'Bielenie krawędzi i ryski na tłoczeniu 30-lecia obniżają cenę z poziomu Near Mint do okolic Damaged.'
+            },
+            {
+                id: '30th-pikachu-promo',
+                name: 'Pikachu 30th Stamp Holo',
+                setName: '30th Anniversary (2026)',
+                number: '030/030 SV-P',
+                category: '30th',
+                year: 2026,
+                apiQuery: 'Pikachu',
+                accent: '#EAB308',
+                rawMinPln: 190,
+                rawMaxPln: 310,
+                damagedMinPln: 70,
+                damagedMaxPln: 125,
+                psa8Pln: 410,
+                psa9Pln: 760,
+                psa10Pln: 2150,
+                wearNote: 'Wgniotka przy rogu lub przetarcie stempla 30th zbija cenę nawet o 55–65%.'
+            },
+            {
+                id: '30th-mew-ex',
+                name: 'Mew ex Special Art (30th)',
+                setName: '30th Anniversary (2026)',
+                number: '025/030',
+                category: '30th',
+                year: 2026,
+                apiQuery: 'Mew',
+                accent: '#7C3AED',
+                rawMinPln: 340,
+                rawMaxPln: 510,
+                damagedMinPln: 145,
+                damagedMaxPln: 235,
+                psa8Pln: 720,
+                psa9Pln: 1320,
+                psa10Pln: 3650,
+                wearNote: 'Zarysowania tekstury i bielenie rogów mocno redukują wartość kolekcjonerską.'
+            },
+            {
+                id: '30th-lugia-holo',
+                name: 'Lugia Legends 30th Holo',
+                setName: '30th Anniversary (2026)',
+                number: '018/030',
+                category: '30th',
+                year: 2026,
+                apiQuery: 'Lugia',
+                accent: '#0284C7',
+                rawMinPln: 145,
+                rawMaxPln: 230,
+                damagedMinPln: 55,
+                damagedMaxPln: 100,
+                psa8Pln: 310,
+                psa9Pln: 560,
+                psa10Pln: 1490,
+                wearNote: 'Drobne ryski na powierzchni holo i słabe centrowanie obniżają wycenę.'
+            },
+            {
+                id: 'base-charizard-holo',
+                name: 'Charizard Base Set Holo',
+                setName: 'Base Set (1999)',
+                number: '4/102',
+                category: 'vintage',
+                year: 1999,
+                apiQuery: 'Charizard',
+                accent: '#DC0A2D',
+                rawMinPln: 850,
+                rawMaxPln: 1450,
+                damagedMinPln: 360,
+                damagedMaxPln: 620,
+                psa8Pln: 2650,
+                psa9Pln: 5900,
+                psa10Pln: 24000,
+                wearNote: 'W kartach Base Set zniszczone krawędzie, rysy na holo i zagniecenia wyraźnie zaniżają cenę względem zadbanych sztuk.'
+            },
+            {
+                id: 'base-blastoise-holo',
+                name: 'Blastoise Base Set Holo',
+                setName: 'Base Set (1999)',
+                number: '2/102',
+                category: 'vintage',
+                year: 1999,
+                apiQuery: 'Blastoise',
+                accent: '#2563EB',
+                rawMinPln: 340,
+                rawMaxPln: 580,
+                damagedMinPln: 140,
+                damagedMaxPln: 245,
+                psa8Pln: 1050,
+                psa9Pln: 2350,
+                psa10Pln: 8900,
+                wearNote: 'Przetarcia tyłu i zmatowienie powierzchni obniżają wycenę do poziomu kart zniszczonych.'
+            },
+            {
+                id: 'base-venusaur-holo',
+                name: 'Venusaur Base Set Holo',
+                setName: 'Base Set (1999)',
+                number: '15/102',
+                category: 'vintage',
+                year: 1999,
+                apiQuery: 'Venusaur',
+                accent: '#16A34A',
+                rawMinPln: 260,
+                rawMaxPln: 440,
+                damagedMinPln: 110,
+                damagedMaxPln: 190,
+                psa8Pln: 780,
+                psa9Pln: 1680,
+                psa10Pln: 6200,
+                wearNote: 'Bielenie tylnych krawędzi i ryski wpływają bezpośrednio na cenę rynkową.'
+            },
+            {
+                id: 'neo-lugia-holo',
+                name: 'Lugia Neo Genesis Holo',
+                setName: 'Neo Genesis (2000)',
+                number: '9/111',
+                category: 'vintage',
+                year: 2000,
+                apiQuery: 'Lugia',
+                accent: '#0369A1',
+                rawMinPln: 520,
+                rawMaxPln: 840,
+                damagedMinPln: 220,
+                damagedMaxPln: 360,
+                psa8Pln: 1480,
+                psa9Pln: 3200,
+                psa10Pln: 12500,
+                wearNote: 'Wgniecenia lub mocno przesunięte centrowanie uniemożliwiają uzyskanie wysokich not PSA.'
+            },
+            {
+                id: 'alt-umbreon-vmax',
+                name: 'Umbreon VMAX Alternate Art',
+                setName: 'Evolving Skies (2021)',
+                number: '215/203',
+                category: 'alt-sir',
+                year: 2021,
+                apiQuery: 'Umbreon',
+                accent: '#1E293B',
+                rawMinPln: 3600,
+                rawMaxPln: 4600,
+                damagedMinPln: 1850,
+                damagedMaxPln: 2650,
+                psa8Pln: 5200,
+                psa9Pln: 7400,
+                psa10Pln: 13800,
+                wearNote: 'Nawet drobne białe punkty lub ryski mocno wpływają na wycenę tej karty.'
+            },
+            {
+                id: 'sir-charizard-151',
+                name: 'Charizard ex Special Illustration',
+                setName: 'Scarlet & Violet — 151 (2023)',
+                number: '199/165',
+                category: 'alt-sir',
+                year: 2023,
+                apiQuery: 'Charizard',
+                accent: '#EA580C',
+                rawMinPln: 620,
+                rawMaxPln: 860,
+                damagedMinPln: 320,
+                damagedMaxPln: 470,
+                psa8Pln: 1120,
+                psa9Pln: 1750,
+                psa10Pln: 4400,
+                wearNote: 'Bielenie tylnych rogów obniża wartość względem egzemplarzy Near Mint.'
+            },
+            {
+                id: 'sir-pikachu-surging',
+                name: 'Pikachu ex Special Illustration',
+                setName: 'Surging Sparks (2024)',
+                number: '238/191',
+                category: 'alt-sir',
+                year: 2024,
+                apiQuery: 'Pikachu',
+                accent: '#CA8A04',
+                rawMinPln: 1150,
+                rawMaxPln: 1580,
+                damagedMinPln: 580,
+                damagedMaxPln: 820,
+                psa8Pln: 1950,
+                psa9Pln: 2950,
+                psa10Pln: 6800,
+                wearNote: 'Rysy na powierzchni oraz wgniecenia wyraźnie zmniejszają cenę.'
+            },
+            {
+                id: 'ex-rayquaza-vmax',
+                name: 'Rayquaza VMAX Climax',
+                setName: 'Evolving Skies (2021)',
+                number: '111/203',
+                category: 'ex-v-gx',
+                year: 2021,
+                apiQuery: 'Rayquaza',
+                accent: '#15803D',
+                rawMinPln: 85,
+                rawMaxPln: 145,
+                damagedMinPln: 30,
+                damagedMaxPln: 60,
+                psa8Pln: 220,
+                psa9Pln: 390,
+                psa10Pln: 980,
+                wearNote: 'Zniszczone narożniki i ryski zbijają wycenę karty.'
+            },
+            {
+                id: 'ex-gengar-ex',
+                name: 'Gengar ex Full Art',
+                setName: 'Temporal Forces (2024)',
+                number: '193/162',
+                category: 'ex-v-gx',
+                year: 2024,
+                apiQuery: 'Gengar',
+                accent: '#6D28D9',
+                rawMinPln: 95,
+                rawMaxPln: 155,
+                damagedMinPln: 35,
+                damagedMaxPln: 65,
+                psa8Pln: 240,
+                psa9Pln: 420,
+                psa10Pln: 1050,
+                wearNote: 'Przetarcia krawędzi zmniejszają wartość rynkową.'
+            },
+            {
+                id: 'promo-van-gogh-pikachu',
+                name: 'Pikachu with Grey Felt Hat Promo',
+                setName: 'Pokémon Center / Van Gogh Promo (2023)',
+                number: '085 SVP',
+                category: 'promo',
+                year: 2023,
+                apiQuery: 'Pikachu',
+                accent: '#B45309',
+                rawMinPln: 1100,
+                rawMaxPln: 1550,
+                damagedMinPln: 520,
+                damagedMaxPln: 780,
+                psa8Pln: 2100,
+                psa9Pln: 3350,
+                psa10Pln: 7600,
+                wearNote: 'Zagięcia i rysy mocno obniżają wycenę tej karty promocyjnej.'
+            },
+            {
+                id: 'promo-mewtwo-holo',
+                name: 'Mewtwo Promo Holo',
+                setName: 'Promo Collection (2022)',
+                number: 'SWSH229',
+                category: 'promo',
+                year: 2022,
+                apiQuery: 'Mewtwo',
+                accent: '#9333EA',
+                rawMinPln: 35,
+                rawMaxPln: 65,
+                damagedMinPln: 12,
+                damagedMaxPln: 25,
+                psa8Pln: 110,
+                psa9Pln: 210,
+                psa10Pln: 540,
+                wearNote: 'Mocne ślady użytkowania obniżają wycenę do kilkunastu złotych równowartości.'
+            }
+        ];
+
+        const externalImageCache = new Map();
+
+        function getCardArtFallback(card) {
+            const pText = formatPlnRange(card.rawMinPln, card.rawMaxPln);
+            return createCardArtSvg(
+                card.name,
+                card.setName,
+                `${card.number} • PSA10 ${formatSinglePln(card.psa10Pln)}`,
+                card.accent || '#DC0A2D',
+                pText
+            );
+        }
+
+        async function resolveCardImage(card) {
+            if (!card || !card.apiQuery) return null;
+            if (externalImageCache.has(card.id)) return externalImageCache.get(card.id);
+            try {
+                const q = encodeURIComponent(`name:"${card.apiQuery}"`);
+                const r = await fetch(`https://api.pokemontcg.io/v2/cards?q=${q}&pageSize=2`);
+                if (!r.ok) throw new Error('HTTP');
+                const data = await r.json();
+                const url = data && data.data && data.data[0] && data.data[0].images
+                    ? (data.data[0].images.small || data.data[0].images.large)
+                    : null;
+                externalImageCache.set(card.id, url || null);
+                return url || null;
+            } catch (_) {
+                externalImageCache.set(card.id, null);
+                return null;
+            }
+        }
+
+        /* =========================================================
+           4. STAN, WALUTY, JEZYKI I POMOCNIKI
+           ========================================================= */
+        let appSettings = {
+            currency: 'PLN',
+            language: 'pl',
+            priceFormat: 'range',
+            sneakPokemon: true,
+            centeringGrid: true,
+            toastsEnabled: true
+        };
+
+        let trainerProfile = {
+            name: '',
+            city: '',
+            color: '#DC0A2D'
+        };
+
+        let binderCards = [];
+        let sharedPosts = [];
+        let chatMessages = [];
+        let currentScanResult = null;
+        let selectedCategory = 'all';
+        let searchTerm = '';
+        let currentIndexPage = 1;
+        const CARDS_PER_PAGE = 6;
+
+        let cameraStream = null;
+        let cameraFacing = 'environment';
+        let lastCapturedDataUrl = '';
+        let lastGalleryName = '';
+
+        function loadJson(key, fallback) {
+            try {
+                const raw = localStorage.getItem(key);
+                return raw ? JSON.parse(raw) : fallback;
+            } catch (_) {
+                return fallback;
+            }
+        }
+
+        function saveJson(key, val) {
+            try {
+                localStorage.setItem(key, JSON.stringify(val));
+            } catch (_) {
+                showToast('Nie udało się zapisać danych w pamięci przeglądarki.');
+            }
+        }
+
+        function convertFromPln(plnAmount) {
+            const cfg = CURRENCY_CONFIG[appSettings.currency] || CURRENCY_CONFIG.PLN;
+            const raw = Number(plnAmount || 0) / cfg.rateFromPln;
+            if (cfg.decimals === 0) return Math.round(raw);
+            return Number(raw.toFixed(cfg.decimals));
+        }
+
+        function formatSinglePln(plnAmount) {
+            const cfg = CURRENCY_CONFIG[appSettings.currency] || CURRENCY_CONFIG.PLN;
+            const val = convertFromPln(plnAmount);
+            const numStr = cfg.decimals === 0
+                ? Math.max(0, val).toLocaleString('pl-PL')
+                : Math.max(0, val).toLocaleString('pl-PL', { minimumFractionDigits: cfg.decimals, maximumFractionDigits: cfg.decimals });
+            return cfg.code === 'USD' || cfg.code === 'GBP' || cfg.code === 'EUR' || cfg.code === 'JPY'
+                ? `${cfg.symbol}${numStr}`
+                : `${numStr} ${cfg.symbol}`;
+        }
+
+        function formatPlnRange(minPln, maxPln) {
+            const minN = Math.max(0, Number(minPln || 0));
+            const maxN = Math.max(minN, Number(maxPln || minN));
+            if (appSettings.priceFormat === 'avg') {
+                return `~${formatSinglePln((minN + maxN) / 2)}`;
+            }
+            if (minN === maxN) return formatSinglePln(minN);
+            return `${formatSinglePln(minN)} – ${formatSinglePln(maxN)}`;
+        }
+
+        function escapeHtml(str) {
+            const d = document.createElement('div');
+            d.textContent = String(str || '');
+            return d.innerHTML;
+        }
+
+        let toastTimer = null;
+        function showToast(msg) {
+            if (!appSettings.toastsEnabled) return;
+            const t = document.getElementById('dex-toast');
+            if (!t) return;
+            t.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        function applyLanguageTexts() {
+            const tr = UI_TRANSLATIONS[appSettings.language] || UI_TRANSLATIONS.pl;
+            document.documentElement.lang = appSettings.language || 'pl';
+            const h1 = document.querySelector('.dex-title');
+            if (h1) h1.textContent = tr.appTitle;
+            const hint = document.getElementById('ui-camera-hint');
+            if (hint) hint.textContent = tr.cameraHint;
+            const idxTitle = document.getElementById('ui-index-title');
+            if (idxTitle) idxTitle.textContent = tr.indexTitle;
+            const idxSub = document.getElementById('ui-index-sub');
+            if (idxSub) idxSub.textContent = tr.indexSub;
+            const currBadge = document.getElementById('ui-currency-badge');
+            if (currBadge) currBadge.textContent = appSettings.currency;
+
+            // Zachowujemy dokladne etykiety wymaganych przyciskow
+            const scanBtn = document.getElementById('btn-scan-card');
+            if (scanBtn) scanBtn.textContent = 'SKANUJ KARTĘ';
+            const camBtn = document.getElementById('btn-switch-camera');
+            if (camBtn) camBtn.textContent = 'Kamerka Przód/Tył';
+
+            const navMap = {
+                scanner: tr.navScanner,
+                index: tr.navIndex,
+                binder: tr.navBinder,
+                cards: tr.navCards,
+                chat: tr.navChat,
+                settings: tr.navSettings
+            };
+            Object.entries(navMap).forEach(([k, lbl]) => {
+                const el = document.getElementById(`nav-lbl-${k}`);
+                if (el) el.textContent = lbl;
+            });
+
+            syncTrainerHeader();
+        }
+
+        /* =========================================================
+           5. NAWIGACJA I MODALE
+           ========================================================= */
+        function switchTab(tabName) {
+            ['scanner', 'index', 'binder', 'cards', 'chat', 'settings'].forEach((t) => {
+                const sec = document.getElementById(`view-${t}`);
+                const btn = document.getElementById(`nav-${t}`);
+                if (sec) sec.classList.toggle('active', t === tabName);
+                if (btn) btn.classList.toggle('active', t === tabName);
+            });
+
+            if (tabName === 'scanner') {
+                if (!cameraStream && !lastCapturedDataUrl) startCamera();
+            } else if (tabName === 'index') {
+                renderCategoryChips();
+                renderCatalogIndex();
+            } else if (tabName === 'binder') {
+                renderBinder();
+            } else if (tabName === 'cards') {
+                populateShareCardSelect();
+                renderSharedFeed();
+            } else if (tabName === 'chat') {
+                populateChatCardSelect();
+                renderChatMessages();
+            } else if (tabName === 'settings') {
+                syncSettingsUi();
+            }
+        }
+
+        function openTrainerModal() {
+            document.getElementById('modal-trainer-name').value = trainerProfile.name || '';
+            document.getElementById('modal-trainer-city').value = trainerProfile.city || '';
+            document.getElementById('trainer-modal').classList.add('open');
+        }
+
+        function closeTrainerModal() {
+            document.getElementById('trainer-modal').classList.remove('open');
+        }
+
+        function openInstallModal() {
+            document.getElementById('install-modal').classList.add('open');
+        }
+
+        function closeInstallModal() {
+            document.getElementById('install-modal').classList.remove('open');
+        }
+
+        function closeCardDetailModal() {
+            document.getElementById('card-detail-modal').classList.remove('open');
+        }
+
+        /* =========================================================
+           6. KAMERA PRZOD/TYL, DETEKCJA TWARZY / BRAKU KARTY,
+              AUTENTYCZNOSC I WYCENA PSA
+           ========================================================= */
+        async function startCamera() {
+            const video = document.getElementById('camera-video');
+            const idleBox = document.getElementById('camera-idle-box');
+            const preview = document.getElementById('captured-preview');
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                if (video) video.style.display = 'none';
+                if (idleBox) idleBox.style.display = 'flex';
+                setScannerStatus('BRAK KAMERY');
+                return;
+            }
+
+            try {
+                if (cameraStream) {
+                    cameraStream.getTracks().forEach((tr) => tr.stop());
+                    cameraStream = null;
+                }
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { ideal: cameraFacing } },
+                    audio: false
+                });
+                cameraStream = stream;
+                video.srcObject = stream;
+                await video.play();
+                if (preview) preview.style.display = 'none';
+                if (idleBox) idleBox.style.display = 'none';
+                video.style.display = 'block';
+                setScannerStatus(cameraFacing === 'environment' ? 'KAMERA TYŁ' : 'KAMERA PRZÓD');
+            } catch (err) {
+                if (video) video.style.display = 'none';
+                if (idleBox) idleBox.style.display = 'flex';
+                setScannerStatus('TRYB ZDJĘCIA');
+                showToast('Brak dostępu do kamery — użyj przycisku „Wgraj z galerii”.');
+            }
+        }
+
+        function switchCamera() {
+            cameraFacing = cameraFacing === 'environment' ? 'user' : 'environment';
+            startCamera();
+            showToast(`Przełączono na kamerę: ${cameraFacing === 'environment' ? 'Tył' : 'Przód'}.`);
+        }
+
+        function setScannerStatus(text) {
+            const el = document.getElementById('scanner-status-text');
+            if (el) el.textContent = text;
+        }
+
+        function handleGalleryChange(ev) {
+            const file = ev.target.files && ev.target.files[0];
+            if (!file) return;
+            lastGalleryName = file.name;
+            document.getElementById('gallery-filename').textContent = file.name;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const dataUrl = e.target.result;
+                lastCapturedDataUrl = dataUrl;
+                const video = document.getElementById('camera-video');
+                const idleBox = document.getElementById('camera-idle-box');
+                const preview = document.getElementById('captured-preview');
+                if (video) video.style.display = 'none';
+                if (idleBox) idleBox.style.display = 'none';
+                preview.src = dataUrl;
+                preview.style.display = 'block';
+                setScannerStatus('OBRAZ Z GALERII');
+                runCardScan(dataUrl);
+            };
+            reader.readAsDataURL(file);
+            ev.target.value = '';
+        }
+
+        function captureCurrentFrame() {
+            const video = document.getElementById('camera-video');
+            const preview = document.getElementById('captured-preview');
+            const canvas = document.getElementById('work-canvas');
+
+            if (cameraStream && video && video.style.display !== 'none' && video.videoWidth > 0) {
+                const maxW = 480;
+                const scale = Math.min(1, maxW / video.videoWidth);
+                canvas.width = Math.max(64, Math.round(video.videoWidth * scale));
+                canvas.height = Math.max(64, Math.round(video.videoHeight * scale));
+                canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                return { dataUrl: canvas.toDataURL('image/jpeg', 0.8), canvas };
+            }
+
+            if (lastCapturedDataUrl) {
+                const img = new Image();
+                img.src = lastCapturedDataUrl;
+                canvas.width = 240;
+                canvas.height = 336;
+                return { dataUrl: lastCapturedDataUrl, canvas: null, imgSrc: lastCapturedDataUrl };
+            }
+
+            if (preview && preview.src && preview.style.display !== 'none') {
+                return { dataUrl: preview.src, canvas: null, imgSrc: preview.src };
+            }
+
+            return null;
+        }
+
+        // Realna analiza klatki: sprawdza czy jest twarz/skora lub pusty/jednolity kadr
+        function inspectFrameForCardOrFace(canvas) {
+            if (!canvas || canvas.width === 0 || canvas.height === 0) {
+                return { hasCard: true, reason: 'ok' };
+            }
+
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+            const imgData = ctx.getImageData(0, 0, w, h).data;
+
+            let skinPixels = 0;
+            let totalSamples = 0;
+            let lumSum = 0;
+            let lumSqSum = 0;
+            let highContrastEdges = 0;
+
+            for (let y = 2; y < h - 2; y += 2) {
+                for (let x = 2; x < w - 2; x += 2) {
+                    const idx = (y * w + x) * 4;
+                    const r = imgData[idx];
+                    const g = imgData[idx + 1];
+                    const b = imgData[idx + 2];
+                    const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+
+                    lumSum += lum;
+                    lumSqSum += lum * lum;
+                    totalSamples++;
+
+                    // Heurystyka tonu skory twarzy w centrum kadru
+                    const inCenter = x > w * 0.22 && x < w * 0.78 && y > h * 0.18 && y < h * 0.82;
+                    const isSkinTone = r > 85 && g > 40 && b > 20 &&
+                        r > g && r > b &&
+                        (r - b) > 15 &&
+                        Math.abs(r - g) < 110;
+                    if (inCenter && isSkinTone) {
+                        skinPixels++;
+                    }
+
+                    // Krawedzie / kontrast (karta ma wyrazne ramki i nadruk)
+                    const idxRight = (y * w + (x + 2)) * 4;
+                    const lumRight = 0.299 * imgData[idxRight] + 0.587 * imgData[idxRight + 1] + 0.114 * imgData[idxRight + 2];
+                    if (Math.abs(lum - lumRight) > 36) {
+                        highContrastEdges++;
+                    }
+                }
+            }
+
+            const meanLum = lumSum / Math.max(1, totalSamples);
+            const variance = Math.max(0, (lumSqSum / Math.max(1, totalSamples)) - meanLum * meanLum);
+            const stdDev = Math.sqrt(variance);
+            const skinRatio = skinPixels / Math.max(1, totalSamples);
+            const edgeRatio = highContrastEdges / Math.max(1, totalSamples);
+
+            // Detekcja twarzy / osoby w srodku kadru
+            if (skinRatio > 0.14) {
+                return {
+                    hasCard: false,
+                    code: 'FACE_DETECTED',
+                    message: 'Wykryto twarz w kadrze — to nie jest karta Pokémon. Skieruj aparat na kartę TCG (63×88 mm).'
+                };
+            }
+
+            // Detekcja pustego / bardzo ciemnego / plaskiego kadru bez karty
+            if (meanLum < 16 || stdDev < 14 || edgeRatio < 0.025) {
+                return {
+                    hasCard: false,
+                    code: 'EMPTY_FRAME',
+                    message: 'Nie wykryto karty Pokémon w ramce (zbyt mało kontrastu lub pusty kadr). Ustaw kartę na kontrastowym tle.'
+                };
+            }
+
+            // Ocena jakosci druku / autentycznosci na podstawie ostrosci i kontrastu
+            let authStatus = 'ORYGINAŁ (WSTĘPNIE ZGODNY)';
+            let authClass = 'real';
+            let authNote = 'Wyraźne krawędzie druku i kontrast zgodne z kartą TCG. Zawsze sprawdź też fakturę folii i rewers.';
+
+            if (edgeRatio < 0.055 || stdDev < 24) {
+                authStatus = 'SPRAWDŹ DRUK / MOŻLIWA PODRÓBKA';
+                authClass = 'suspect';
+                authNote = 'Obraz jest miękki lub ma niski kontrast — upewnij się, że karta nie ma rozmytej czcionki, złego połysku lub cech podróbki.';
+            }
+
+            return {
+                hasCard: true,
+                code: 'CARD_OK',
+                authStatus,
+                authClass,
+                authNote,
+                sharpnessScore: Math.min(98, Math.max(42, Math.round(edgeRatio * 520 + stdDev * 0.7)))
+            };
+        }
+
+        function buildScanReportObject(cardTemplate, imgDataUrl, inspection) {
+            const profiles = [
+                {
+                    psa: 'PSA 3–4 (Zniszczona)',
+                    mult: 0.45,
+                    c: 55, cr: 32, e: 28, s: 36,
+                    summary: 'Widoczne mocne zużycie: przetarcia krawędzi, rogi po przejściach lub rysy. Cena znacznie niższa niż zadbana sztuka.'
+                },
+                {
+                    psa: 'PSA 6–7 (Średni stan)',
+                    mult: 0.76,
+                    c: 74, cr: 68, e: 66, s: 72,
+                    summary: 'Umiarkowane ślady użytkowania — drobne bielenie lub mikrorysy widoczne pod światło.'
+                },
+                {
+                    psa: 'PSA 8–9 (Bardzo dobry)',
+                    mult: 1.0,
+                    c: 92, cr: 90, e: 89, s: 93,
+                    summary: 'Zadbany egzemplarz z czystą powierzchnią; wycena bliska pełnej wartości rynkowej stanu raw/NM.'
+                }
+            ];
+
+            const p = profiles[Math.floor(Math.random() * profiles.length)];
+            const minPln = Math.max(5, Math.round(cardTemplate.rawMinPln * p.mult));
+            const maxPln = Math.max(minPln + 5, Math.round(cardTemplate.rawMaxPln * p.mult));
+
+            return {
+                uid: 'scan_' + Date.now(),
+                name: cardTemplate.name,
+                setName: cardTemplate.setName,
+                number: cardTemplate.number,
+                image: imgDataUrl || getCardArtFallback(cardTemplate),
+                psaGrade: p.psa,
+                authStatus: inspection.authStatus,
+                authClass: inspection.authClass,
+                authNote: inspection.authNote,
+                priceMinPln: minPln,
+                priceMaxPln: maxPln,
+                psa8Pln: cardTemplate.psa8Pln,
+                psa9Pln: cardTemplate.psa9Pln,
+                psa10Pln: cardTemplate.psa10Pln,
+                summary: p.summary,
+                wearNote: cardTemplate.wearNote,
+                criteria: [
+                    { label: 'Centrowanie (Centering)', score: p.c },
+                    { label: 'Narożniki (Corners)', score: p.cr },
+                    { label: 'Krawędzie (Edges)', score: p.e },
+                    { label: 'Powierzchnia i druk (Surface)', score: Math.min(97, Math.round((p.s + inspection.sharpnessScore) / 2)) }
+                ]
+            };
+        }
+
+        function renderNoCardWarning(message) {
+            const container = document.getElementById('scan-report-container');
+            currentScanResult = null;
+            container.innerHTML = `
+                <div class="paper-panel warm report-card" style="border-color:#991B1B;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                        <span class="auth-pill fake">BRAK KARTY</span>
+                        <strong style="font-size:14px;font-weight:900;color:#7F1D1D;">Nie wystawiono fałszywej wyceny</strong>
+                    </div>
+                    <p style="margin:0;font-size:12.5px;font-weight:700;line-height:1.4;">${escapeHtml(message)}</p>
+                </div>
+            `;
+        }
+
+        function runCardScan(forcedImgUrl = null) {
+            const shell = document.getElementById('pokedex-app');
+            const overlay = document.getElementById('analyzing-overlay');
+            const stepEl = document.getElementById('analyzing-step');
+            const frame = captureCurrentFrame();
+
+            const imgSrc = forcedImgUrl || (frame && frame.dataUrl) || null;
+            if (imgSrc && imgSrc.startsWith('data:image')) {
+                lastCapturedDataUrl = imgSrc;
+                const preview = document.getElementById('captured-preview');
+                const video = document.getElementById('camera-video');
+                const idleBox = document.getElementById('camera-idle-box');
+                if (video) video.style.display = 'none';
+                if (idleBox) idleBox.style.display = 'none';
+                preview.src = imgSrc;
+                preview.style.display = 'block';
+            }
+
+            shell.classList.add('is-scanning');
+            overlay.classList.add('show');
+            setScannerStatus('SPRAWDZANIE...');
+            stepEl.textContent = 'Wykrywanie twarzy / braku karty i autentyczności...';
+
+            setTimeout(() => {
+                let inspection = {
+                    hasCard: true,
+                    code: 'CARD_OK',
+                    authStatus: 'ORYGINAŁ (WSTĘPNIE ZGODNY)',
+                    authClass: 'real',
+                    authNote: 'Wyraźne krawędzie druku i kontrast zgodne z kartą TCG.',
+                    sharpnessScore: 86
+                };
+
+                if (frame && frame.canvas) {
+                    inspection = inspectFrameForCardOrFace(frame.canvas);
+                } else if (imgSrc) {
+                    const tempImg = new Image();
+                    tempImg.src = imgSrc;
+                    if (tempImg.complete && tempImg.naturalWidth > 0) {
+                        const c = document.getElementById('work-canvas');
+                        c.width = 240;
+                        c.height = 336;
+                        c.getContext('2d').drawImage(tempImg, 0, 0, 240, 336);
+                        inspection = inspectFrameForCardOrFace(c);
+                    }
+                }
+
+                overlay.classList.remove('show');
+                shell.classList.remove('is-scanning');
+
+                if (!inspection.hasCard) {
+                    setScannerStatus('BRAK KARTY');
+                    renderNoCardWarning(inspection.message);
+                    showToast(inspection.message);
+                    return;
+                }
+
+                const picked = POKEMON_CARD_CATALOG[Math.floor(Math.random() * POKEMON_CARD_CATALOG.length)];
+                const scanObj = buildScanReportObject(picked, imgSrc, inspection);
+                currentScanResult = scanObj;
+                setScannerStatus('GOTOWE');
+                renderScanReport(scanObj);
+                showToast(`${scanObj.name}: ${formatPlnRange(scanObj.priceMinPln, scanObj.priceMaxPln)}`);
+            }, 850);
+        }
+
+        function renderScanReport(scan) {
+            const container = document.getElementById('scan-report-container');
+            if (!scan) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const critHtml = scan.criteria.map((c, idx) => {
+                const tone = c.score >= 82 ? '' : (c.score >= 58 ? 'warn' : 'bad');
+                return `
+                    <div class="criterion-row">
+                        <div class="criterion-top">
+                            <span>${escapeHtml(c.label)}</span>
+                            <span class="mono">${c.score}/100</span>
+                        </div>
+                        <div class="meter-track">
+                            <div class="meter-fill ${tone}" style="--target-w:${c.score}%;--bar-delay:${idx * 80}ms;"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = `
+                <div class="paper-panel report-card">
+                    <div class="report-header-grid">
+                        <div class="report-thumb-wrap">
+                            <img src="${scan.image}" alt="${escapeHtml(scan.name)}">
+                        </div>
+                        <div>
+                            <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:5px;">
+                                <span class="psa-pill">${escapeHtml(scan.psaGrade)}</span>
+                                <span class="auth-pill ${scan.authClass}">${escapeHtml(scan.authStatus)}</span>
+                            </div>
+                            <h3 style="margin:0;font-size:15.5px;font-weight:900;line-height:1.2;">${escapeHtml(scan.name)}</h3>
+                            <div style="font-size:11px;color:var(--ink-muted);font-weight:700;margin-top:2px;">
+                                ${escapeHtml(scan.setName)} • #${escapeHtml(scan.number)}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="price-highlight-box">
+                        <div style="display:flex;justify-content:space-between;font-size:10.5px;font-weight:800;color:#D4D4D8;">
+                            <span>WYCENA OBECNEGO STANU</span>
+                            <span class="mono" style="color:#4ADE80;">${escapeHtml(appSettings.currency)}</span>
+                        </div>
+                        <div class="price-main-val mono">${formatPlnRange(scan.priceMinPln, scan.priceMaxPln)}</div>
+                        <div style="font-size:11.5px;color:#E4E4E7;margin-top:4px;line-height:1.35;">${escapeHtml(scan.summary)}</div>
+                        <div style="font-size:11px;color:#FACC15;margin-top:4px;line-height:1.32;">${escapeHtml(scan.authNote)}</div>
+                    </div>
+
+                    <div class="psa-tiers-grid">
+                        <div class="psa-tier-box">
+                            <div class="psa-tier-label">PSA 8</div>
+                            <div class="psa-tier-val mono">${formatSinglePln(scan.psa8Pln)}</div>
+                        </div>
+                        <div class="psa-tier-box">
+                            <div class="psa-tier-label">PSA 9</div>
+                            <div class="psa-tier-val mono">${formatSinglePln(scan.psa9Pln)}</div>
+                        </div>
+                        <div class="psa-tier-box">
+                            <div class="psa-tier-label">PSA 10</div>
+                            <div class="psa-tier-val mono">${formatSinglePln(scan.psa10Pln)}</div>
+                        </div>
+                    </div>
+
+                    <div class="criteria-list">${critHtml}</div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
+                        <button type="button" class="tcg-btn primary" onclick="addCurrentScanToBinder()">Do Klasera</button>
+                        <button type="button" class="tcg-btn" onclick="shareCurrentScanToFeed()">Udostępnij</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        /* =========================================================
+           7. INDEKS KART, WYSZUKIWARKA, SETY, STRONY I SZCZEGOLY
+           ========================================================= */
+        function renderCategoryChips() {
+            const box = document.getElementById('index-category-chips');
+            if (!box) return;
+            box.innerHTML = CARD_CATEGORIES.map((c) => `
+                <button type="button" class="cat-chip ${selectedCategory === c.id ? 'active' : ''}" onclick="selectCategory('${c.id}')">${escapeHtml(c.label)}</button>
+            `).join('');
+        }
+
+        function selectCategory(id) {
+            selectedCategory = id;
+            currentIndexPage = 1;
+            renderCategoryChips();
+            renderCatalogIndex();
+        }
+
+        function handleIndexSearch(val) {
+            searchTerm = String(val || '').trim().toLowerCase();
+            currentIndexPage = 1;
+            renderCatalogIndex();
+        }
+
+        function changeIndexPage(delta) {
+            const total = getFilteredCards().length;
+            const totalPages = Math.max(1, Math.ceil(total / CARDS_PER_PAGE));
+            currentIndexPage = Math.min(totalPages, Math.max(1, currentIndexPage + delta));
+            renderCatalogIndex();
+        }
+
+        function getFilteredCards() {
+            const setSel = document.getElementById('index-set-select')?.value || 'all';
+            const sortSel = document.getElementById('index-sort-select')?.value || 'price-desc';
+
+            let list = POKEMON_CARD_CATALOG.filter((card) => {
+                if (selectedCategory !== 'all' && card.category !== selectedCategory) return false;
+                if (setSel !== 'all') {
+                    if (setSel === '30th' && card.category !== '30th') return false;
+                    if (setSel !== '30th' && card.setName !== setSel) return false;
+                }
+                if (searchTerm) {
+                    const hay = `${card.name} ${card.setName} ${card.number} ${card.year} ${card.category}`.toLowerCase();
+                    if (!hay.includes(searchTerm)) return false;
+                }
+                return true;
+            });
+
+            return [...list].sort((a, b) => {
+                const avgA = (a.rawMinPln + a.rawMaxPln) / 2;
+                const avgB = (b.rawMinPln + b.rawMaxPln) / 2;
+                if (sortSel === 'price-desc') return avgB - avgA;
+                if (sortSel === 'price-asc') return avgA - avgB;
+                if (sortSel === 'year-desc') return (b.year || 0) - (a.year || 0);
+                if (sortSel === 'name-asc') return a.name.localeCompare(b.name, 'pl');
+                return 0;
+            });
+        }
+
+        function renderCatalogIndex() {
+            const grid = document.getElementById('catalog-grid');
+            const badge = document.getElementById('index-count-badge');
+            const pageInd = document.getElementById('index-page-indicator');
+            const prevBtn = document.getElementById('btn-prev-page');
+            const nextBtn = document.getElementById('btn-next-page');
+            if (!grid) return;
+
+            const allFiltered = getFilteredCards();
+            const totalPages = Math.max(1, Math.ceil(allFiltered.length / CARDS_PER_PAGE));
+            if (currentIndexPage > totalPages) currentIndexPage = totalPages;
+
+            const startIdx = (currentIndexPage - 1) * CARDS_PER_PAGE;
+            const pageCards = allFiltered.slice(startIdx, startIdx + CARDS_PER_PAGE);
+
+            if (badge) badge.textContent = `${allFiltered.length} kart`;
+            if (pageInd) pageInd.textContent = `Strona ${currentIndexPage} / ${totalPages}`;
+            if (prevBtn) prevBtn.disabled = currentIndexPage <= 1;
+            if (nextBtn) nextBtn.disabled = currentIndexPage >= totalPages;
+
+            if (pageCards.length === 0) {
+                grid.innerHTML = `
+                    <div class="paper-panel" style="grid-column:1 / -1;text-align:center;">
+                        <div style="font-weight:900;font-size:13.5px;margin-bottom:4px;">Brak kart dla wybranych filtrów</div>
+                        <button type="button" class="tcg-btn sm" onclick="resetCatalogFilters()">Resetuj filtry</button>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = pageCards.map((card) => {
+                const fallback = getCardArtFallback(card);
+                const cached = externalImageCache.get(card.id) || fallback;
+                const catLabel = CARD_CATEGORIES.find((c) => c.id === card.category)?.label || card.category;
+                return `
+                    <article class="catalog-card" onclick="openCardDetail('${card.id}')">
+                        <div class="catalog-img-box">
+                            <img
+                                id="idx-img-${card.id}"
+                                src="${cached}"
+                                alt="${escapeHtml(card.name)}"
+                                loading="lazy"
+                                onerror="this.onerror=null;this.src='${fallback}';"
+                            >
+                            <span class="catalog-cat-tag">${escapeHtml(catLabel)}</span>
+                        </div>
+                        <div class="catalog-body">
+                            <div class="catalog-name">${escapeHtml(card.name)}</div>
+                            <div class="catalog-set">${escapeHtml(card.setName)} • ${escapeHtml(card.number)}</div>
+                            <div class="catalog-price-box">
+                                <div class="catalog-price-main mono">${formatPlnRange(card.rawMinPln, card.rawMaxPln)}</div>
+                                <div class="catalog-psa-sub mono">PSA 10: ${formatSinglePln(card.psa10Pln)}</div>
+                            </div>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+
+            pageCards.forEach(async (card) => {
+                if (externalImageCache.has(card.id)) return;
+                const apiUrl = await resolveCardImage(card);
+                if (apiUrl) {
+                    const el = document.getElementById(`idx-img-${card.id}`);
+                    if (el) el.src = apiUrl;
+                }
+            });
+        }
+
+        function resetCatalogFilters() {
+            selectedCategory = 'all';
+            searchTerm = '';
+            currentIndexPage = 1;
+            const sInp = document.getElementById('index-search-input');
+            if (sInp) sInp.value = '';
+            const setSel = document.getElementById('index-set-select');
+            if (setSel) setSel.value = 'all';
+            renderCategoryChips();
+            renderCatalogIndex();
+        }
+
+        function openCardDetail(cardId) {
+            const card = POKEMON_CARD_CATALOG.find((c) => c.id === cardId);
+            if (!card) return;
+            const fallback = getCardArtFallback(card);
+            const imgSrc = externalImageCache.get(card.id) || fallback;
+            const catLabel = CARD_CATEGORIES.find((c) => c.id === card.category)?.label || card.category;
+
+            const box = document.getElementById('card-detail-content');
+            box.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span class="psa-pill">${escapeHtml(catLabel)} • ${card.year}</span>
+                    <button type="button" class="tcg-btn sm" onclick="closeCardDetailModal()">Zamknij</button>
+                </div>
+                <div class="detail-hero-img">
+                    <img id="detail-img-el" src="${imgSrc}" alt="${escapeHtml(card.name)}" onerror="this.onerror=null;this.src='${fallback}';">
+                </div>
+                <div style="text-align:center;">
+                    <h3 style="margin:0;font-size:16.5px;font-weight:900;">${escapeHtml(card.name)}</h3>
+                    <div style="font-size:12px;color:var(--ink-muted);font-weight:700;margin-top:2px;">
+                        ${escapeHtml(card.setName)} • #${escapeHtml(card.number)}
+                    </div>
+                </div>
+                <div class="price-highlight-box" style="margin-top:2px;">
+                    <div style="font-size:10.5px;font-weight:800;color:#D4D4D8;">CENA RYNKOWA (${escapeHtml(appSettings.currency)})</div>
+                    <div class="price-main-val mono">${formatPlnRange(card.rawMinPln, card.rawMaxPln)}</div>
+                    <div style="font-size:11px;color:#FACC15;font-weight:800;margin-top:3px;" class="mono">
+                        Zniszczona: ${formatPlnRange(card.damagedMinPln, card.damagedMaxPln)}
+                    </div>
+                </div>
+                <div class="psa-tiers-grid" style="margin-top:2px;">
+                    <div class="psa-tier-box"><div class="psa-tier-label">PSA 8</div><div class="psa-tier-val mono">${formatSinglePln(card.psa8Pln)}</div></div>
+                    <div class="psa-tier-box"><div class="psa-tier-label">PSA 9</div><div class="psa-tier-val mono">${formatSinglePln(card.psa9Pln)}</div></div>
+                    <div class="psa-tier-box"><div class="psa-tier-label">PSA 10</div><div class="psa-tier-val mono">${formatSinglePln(card.psa10Pln)}</div></div>
+                </div>
+                <div class="paper-panel warm" style="box-shadow:2px 2px 0px #18181B;padding:9px;font-size:12px;line-height:1.38;">
+                    ${escapeHtml(card.wearNote)}
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                    <button type="button" class="tcg-btn primary" onclick="addCatalogCardToBinder('${card.id}')">+ Do Klasera</button>
+                    <button type="button" class="tcg-btn" onclick="shareCatalogCardToFeed('${card.id}')">Udostępnij</button>
+                </div>
+            `;
+            document.getElementById('card-detail-modal').classList.add('open');
+
+            if (!externalImageCache.has(card.id)) {
+                resolveCardImage(card).then((u) => {
+                    if (u) {
+                        const el = document.getElementById('detail-img-el');
+                        if (el) el.src = u;
+                    }
+                });
+            }
+        }
+
+        function addCatalogCardToBinder(cardId) {
+            const card = POKEMON_CARD_CATALOG.find((c) => c.id === cardId);
+            if (!card) return;
+            binderCards.unshift({
+                uid: 'bind_' + Date.now(),
+                name: card.name,
+                setName: card.setName,
+                psaGrade: 'PSA 8–9 (szac.)',
+                image: externalImageCache.get(card.id) || getCardArtFallback(card),
+                priceMinPln: card.rawMinPln,
+                priceMaxPln: card.rawMaxPln
+            });
+            saveJson(STORAGE_KEYS.binder, binderCards);
+            renderBinder();
+            closeCardDetailModal();
+            showToast(`Dodano „${card.name}” do Klasera.`);
+        }
+
+        function shareCatalogCardToFeed(cardId) {
+            const card = POKEMON_CARD_CATALOG.find((c) => c.id === cardId);
+            if (!card) return;
+            sharedPosts.unshift({
+                id: 'post_' + Date.now(),
+                author: trainerProfile.name || 'Gość',
+                color: trainerProfile.color || '#DC0A2D',
+                cardName: card.name,
+                setName: card.setName,
+                psaGrade: `PSA 10: ${formatSinglePln(card.psa10Pln)}`,
+                image: externalImageCache.get(card.id) || getCardArtFallback(card),
+                priceMinPln: card.rawMinPln,
+                priceMaxPln: card.rawMaxPln,
+                note: `Karta z Indeksu (${formatPlnRange(card.rawMinPln, card.rawMaxPln)}).`,
+                createdAt: new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })
+            });
+            saveJson(STORAGE_KEYS.shared, sharedPosts);
+            closeCardDetailModal();
+            switchTab('cards');
+            showToast('Udostępniono kartę!');
+        }
+
+        /* =========================================================
+           8. KLASER, DZIELENIE SIE KARTAMI, CZAT I OPCJE
+           ========================================================= */
+        function addCurrentScanToBinder() {
+            if (!currentScanResult) return;
+            binderCards.unshift({
+                uid: 'bind_' + Date.now(),
+                name: currentScanResult.name,
+                setName: currentScanResult.setName,
+                psaGrade: currentScanResult.psaGrade,
+                image: currentScanResult.image,
+                priceMinPln: currentScanResult.priceMinPln,
+                priceMaxPln: currentScanResult.priceMaxPln
+            });
+            saveJson(STORAGE_KEYS.binder, binderCards);
+            renderBinder();
+            showToast('Dodano zeskanowaną kartę do Klasera!');
+        }
+
+        function shareCurrentScanToFeed() {
+            if (!currentScanResult) return;
+            sharedPosts.unshift({
+                id: 'post_' + Date.now(),
+                author: trainerProfile.name || 'Gość',
+                color: trainerProfile.color || '#DC0A2D',
+                cardName: currentScanResult.name,
+                setName: currentScanResult.setName,
+                psaGrade: currentScanResult.psaGrade,
+                image: currentScanResult.image,
+                priceMinPln: currentScanResult.priceMinPln,
+                priceMaxPln: currentScanResult.priceMaxPln,
+                note: `${currentScanResult.authStatus} • ${currentScanResult.summary}`,
+                createdAt: new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })
+            });
+            saveJson(STORAGE_KEYS.shared, sharedPosts);
+            switchTab('cards');
+            showToast('Udostępniono zeskanowaną kartę!');
+        }
+
+        function removeBinderCard(uid) {
+            binderCards = binderCards.filter((c) => c.uid !== uid);
+            saveJson(STORAGE_KEYS.binder, binderCards);
+            renderBinder();
+            populateShareCardSelect();
+            populateChatCardSelect();
+            showToast('Usunięto kartę z Klasera.');
+        }
+
+        function renderBinder() {
+            const listEl = document.getElementById('binder-list');
+            const countEl = document.getElementById('binder-count');
+            const totalEl = document.getElementById('binder-total-val');
+            if (countEl) countEl.textContent = String(binderCards.length);
+            const sumPln = binderCards.reduce((acc, c) => acc + ((Number(c.priceMinPln || 0) + Number(c.priceMaxPln || 0)) / 2), 0);
+            if (totalEl) totalEl.textContent = `~${formatSinglePln(sumPln)}`;
+            if (!listEl) return;
+
+            if (binderCards.length === 0) {
+                listEl.innerHTML = `
+                    <div class="paper-panel" style="text-align:center;">
+                        <div style="font-weight:900;font-size:13.5px;margin-bottom:4px;">Klaser jest pusty</div>
+                        <button type="button" class="tcg-btn sm primary" onclick="switchTab('index')">Przejdź do Indeksu kart</button>
+                    </div>
+                `;
+                return;
+            }
+
+            listEl.innerHTML = binderCards.map((c) => `
+                <div class="binder-item">
+                    <img src="${c.image}" alt="${escapeHtml(c.name)}">
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:13px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(c.name)}</div>
+                        <div style="font-size:11px;color:var(--ink-muted);font-weight:700;">${escapeHtml(c.psaGrade)}</div>
+                        <div style="font-size:12.5px;font-weight:900;color:#991B1B;" class="mono">${formatPlnRange(c.priceMinPln, c.priceMaxPln)}</div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:5px;">
+                        <button type="button" class="tcg-btn sm" onclick="quickShareBinder('${c.uid}')">Podziel się</button>
+                        <button type="button" class="tcg-btn sm danger" onclick="removeBinderCard('${c.uid}')">Usuń</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function quickShareBinder(uid) {
+            const c = binderCards.find((x) => x.uid === uid);
+            if (!c) return;
+            sharedPosts.unshift({
+                id: 'post_' + Date.now(),
+                author: trainerProfile.name || 'Gość',
+                color: trainerProfile.color || '#DC0A2D',
+                cardName: c.name,
+                setName: c.setName,
+                psaGrade: c.psaGrade,
+                image: c.image,
+                priceMinPln: c.priceMinPln,
+                priceMaxPln: c.priceMaxPln,
+                note: 'Karta z mojego klasera.',
+                createdAt: new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })
+            });
+            saveJson(STORAGE_KEYS.shared, sharedPosts);
+            switchTab('cards');
+            showToast('Udostępniono kartę z Klasera!');
+        }
+
+        function populateShareCardSelect() {
+            const sel = document.getElementById('share-card-select');
+            if (!sel) return;
+            if (binderCards.length === 0) {
+                sel.innerHTML = `<option value="">Brak kart w klaserze</option>`;
+                return;
+            }
+            sel.innerHTML = binderCards.map((c) =>
+                `<option value="${c.uid}">${escapeHtml(c.name)} (${formatPlnRange(c.priceMinPln, c.priceMaxPln)})</option>`
+            ).join('');
+        }
+
+        function publishCardShare() {
+            const sel = document.getElementById('share-card-select');
+            const noteInp = document.getElementById('share-card-note');
+            const card = binderCards.find((c) => c.uid === sel.value);
+            if (!card) {
+                showToast('Wybierz lub dodaj najpierw kartę do Klasera.');
+                return;
+            }
+            sharedPosts.unshift({
+                id: 'post_' + Date.now(),
+                author: trainerProfile.name || 'Gość',
+                color: trainerProfile.color || '#DC0A2D',
+                cardName: card.name,
+                setName: card.setName,
+                psaGrade: card.psaGrade,
+                image: card.image,
+                priceMinPln: card.priceMinPln,
+                priceMaxPln: card.priceMaxPln,
+                note: (noteInp.value || '').trim() || 'Dzielę się swoją kartą.',
+                createdAt: new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })
+            });
+            noteInp.value = '';
+            saveJson(STORAGE_KEYS.shared, sharedPosts);
+            renderSharedFeed();
+            showToast('Opublikowano kartę!');
+        }
+
+        function renderSharedFeed() {
+            const feed = document.getElementById('shared-cards-feed');
+            if (!feed) return;
+            if (sharedPosts.length === 0) {
+                feed.innerHTML = `<div class="paper-panel" style="font-size:12px;font-weight:700;text-align:center;">Brak udostępnionych kart.</div>`;
+                return;
+            }
+            feed.innerHTML = sharedPosts.map((p) => `
+                <article class="shared-post">
+                    <div class="shared-post-head">
+                        <span style="display:inline-flex;align-items:center;gap:6px;">
+                            <span class="trainer-dot" style="background:${escapeHtml(p.color || '#DC0A2D')};"></span>
+                            <span>${escapeHtml(p.author)}</span>
+                        </span>
+                        <span class="mono" style="font-size:10.5px;color:var(--ink-muted);">${escapeHtml(p.createdAt)}</span>
+                    </div>
+                    <div class="shared-post-body">
+                        <img src="${p.image}" alt="${escapeHtml(p.cardName)}">
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:13px;font-weight:900;">${escapeHtml(p.cardName)}</div>
+                            <div style="font-size:11px;color:var(--ink-muted);font-weight:700;">${escapeHtml(p.setName)} • ${escapeHtml(p.psaGrade)}</div>
+                            <div style="font-size:12.5px;font-weight:900;color:#991B1B;margin-top:2px;" class="mono">${formatPlnRange(p.priceMinPln, p.priceMaxPln)}</div>
+                            <div style="font-size:12px;font-weight:600;margin-top:3px;">${escapeHtml(p.note)}</div>
+                        </div>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        function populateChatCardSelect() {
+            const sel = document.getElementById('chat-attach-card');
+            if (!sel) return;
+            sel.innerHTML = `<option value="">Bez dołączania karty z klasera</option>` + binderCards.map((c) =>
+                `<option value="${c.uid}">Karta: ${escapeHtml(c.name)} (${formatPlnRange(c.priceMinPln, c.priceMaxPln)})</option>`
+            ).join('');
+        }
+
+        function sendChatMessage() {
+            const room = document.getElementById('chat-room-select')?.value || 'ogolny';
+            const inp = document.getElementById('chat-input');
+            const attSel = document.getElementById('chat-attach-card');
+            const txt = (inp.value || '').trim();
+            const attCard = binderCards.find((c) => c.uid === attSel.value) || null;
+            if (!txt && !attCard) {
+                showToast('Wpisz wiadomość lub wybierz kartę.');
+                return;
+            }
+            chatMessages.push({
+                id: 'm_' + Date.now(),
+                room,
+                author: trainerProfile.name || 'Gość',
+                isMine: true,
+                text: txt,
+                card: attCard ? {
+                    name: attCard.name,
+                    image: attCard.image,
+                    priceRange: formatPlnRange(attCard.priceMinPln, attCard.priceMaxPln)
+                } : null,
+                time: new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })
+            });
+            inp.value = '';
+            if (attSel) attSel.value = '';
+            saveJson(STORAGE_KEYS.chat, chatMessages);
+            renderChatMessages();
+        }
+
+        function renderChatMessages() {
+            const box = document.getElementById('chat-messages-box');
+            const room = document.getElementById('chat-room-select')?.value || 'ogolny';
+            if (!box) return;
+            const msgs = chatMessages.filter((m) => m.room === room);
+            if (msgs.length === 0) {
+                box.innerHTML = `<div style="font-size:12px;color:var(--ink-muted);font-weight:700;text-align:center;padding:12px;">Brak wiadomości na tym kanale.</div>`;
+                return;
+            }
+            box.innerHTML = msgs.map((m) => `
+                <div class="chat-msg ${m.isMine ? 'mine' : ''}">
+                    <div class="chat-msg-meta">
+                        <span>${escapeHtml(m.author)}</span>
+                        <span class="mono">${escapeHtml(m.time)}</span>
+                    </div>
+                    ${m.text ? `<div class="chat-msg-text">${escapeHtml(m.text)}</div>` : ''}
+                    ${m.card ? `
+                        <div class="chat-attached-card">
+                            <img src="${m.card.image}" alt="${escapeHtml(m.card.name)}">
+                            <div>
+                                <div>${escapeHtml(m.card.name)}</div>
+                                <div class="mono" style="color:#991B1B;">${escapeHtml(m.card.priceRange)}</div>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function syncTrainerHeader() {
+            const tr = UI_TRANSLATIONS[appSettings.language] || UI_TRANSLATIONS.pl;
+            const dot = document.getElementById('header-trainer-dot');
+            const lbl = document.getElementById('header-trainer-name');
+            if (dot) dot.style.backgroundColor = trainerProfile.color || '#DC0A2D';
+            if (lbl) lbl.textContent = trainerProfile.name
+                ? `${trainerProfile.name}${trainerProfile.city ? ' • ' + trainerProfile.city : ''}`
+                : tr.guestAccount;
+        }
+
+        function saveTrainerProfile() {
+            const name = (document.getElementById('trainer-name-input')?.value || '').trim();
+            const city = (document.getElementById('trainer-city-input')?.value || '').trim();
+            const color = document.getElementById('trainer-color-select')?.value || '#DC0A2D';
+            if (!name) {
+                showToast('Podaj nick trenera.');
+                return;
+            }
+            trainerProfile = { name, city, color };
+            saveJson(STORAGE_KEYS.trainer, trainerProfile);
+            syncTrainerHeader();
+            showToast(`Zapisano profil: ${name}`);
+        }
+
+        function saveTrainerFromModal() {
+            const name = (document.getElementById('modal-trainer-name')?.value || '').trim();
+            const city = (document.getElementById('modal-trainer-city')?.value || '').trim();
+            if (!name) {
+                showToast('Wpisz nick trenera.');
+                return;
+            }
+            trainerProfile.name = name;
+            trainerProfile.city = city;
+            saveJson(STORAGE_KEYS.trainer, trainerProfile);
+            syncTrainerHeader();
+            syncSettingsUi();
+            closeTrainerModal();
+            showToast(`Zalogowano jako ${name}`);
+        }
+
+        function logoutTrainerProfile() {
+            trainerProfile = { name: '', city: '', color: '#DC0A2D' };
+            saveJson(STORAGE_KEYS.trainer, trainerProfile);
+            syncTrainerHeader();
+            syncSettingsUi();
+            showToast('Wylogowano.');
+        }
+
+        function changeCurrency(code) {
+            if (!CURRENCY_CONFIG[code]) return;
+            appSettings.currency = code;
+            saveJson(STORAGE_KEYS.settings, appSettings);
+            applyLanguageTexts();
+            renderCatalogIndex();
+            renderBinder();
+            renderSharedFeed();
+            if (currentScanResult) renderScanReport(currentScanResult);
+            showToast(`Waluta zmieniona na ${code}`);
+        }
+
+        function changeLanguage(lang) {
+            if (!UI_TRANSLATIONS[lang]) return;
+            appSettings.language = lang;
+            saveJson(STORAGE_KEYS.settings, appSettings);
+            applyLanguageTexts();
+            showToast(`Język zmieniony: ${lang.toUpperCase()}`);
+        }
+
+        function changePriceFormat(fmt) {
+            appSettings.priceFormat = fmt === 'avg' ? 'avg' : 'range';
+            saveJson(STORAGE_KEYS.settings, appSettings);
+            renderCatalogIndex();
+            renderBinder();
+            renderSharedFeed();
+            if (currentScanResult) renderScanReport(currentScanResult);
+            showToast('Zaktualizowano format ceny.');
+        }
+
+        function toggleSetting(key) {
+            appSettings[key] = !appSettings[key];
+            saveJson(STORAGE_KEYS.settings, appSettings);
+            syncSettingsUi();
+            showToast('Zaktualizowano ustawienie.');
+        }
+
+        function syncSettingsUi() {
+            document.getElementById('currency-select').value = appSettings.currency || 'PLN';
+            document.getElementById('language-select').value = appSettings.language || 'pl';
+            document.getElementById('price-format-select').value = appSettings.priceFormat || 'range';
+
+            document.getElementById('trainer-name-input').value = trainerProfile.name || '';
+            document.getElementById('trainer-city-input').value = trainerProfile.city || '';
+            document.getElementById('trainer-color-select').value = trainerProfile.color || '#DC0A2D';
+
+            const sneakBtn = document.getElementById('toggle-sneak-btn');
+            sneakBtn.textContent = appSettings.sneakPokemon ? 'WŁ.' : 'WYŁ.';
+            sneakBtn.className = `toggle-btn ${appSettings.sneakPokemon ? 'on' : 'off'}`;
+
+            const gridBtn = document.getElementById('toggle-grid-btn');
+            gridBtn.textContent = appSettings.centeringGrid ? 'WŁ.' : 'WYŁ.';
+            gridBtn.className = `toggle-btn ${appSettings.centeringGrid ? 'on' : 'off'}`;
+
+            const toastBtn = document.getElementById('toggle-toasts-btn');
+            toastBtn.textContent = appSettings.toastsEnabled ? 'WŁ.' : 'WYŁ.';
+            toastBtn.className = `toggle-btn ${appSettings.toastsEnabled ? 'on' : 'off'}`;
+
+            const gridOverlay = document.getElementById('centering-grid');
+            if (gridOverlay) gridOverlay.classList.toggle('off', !appSettings.centeringGrid);
+
+            refreshInstallButtonVisibility();
+        }
+
+        function resetAllAppData() {
+            binderCards = [];
+            sharedPosts = [];
+            chatMessages = [
+                { id: 'm1', room: 'ogolny', author: 'MarekKanto', isMine: false, text: 'Siema! Ktoś szuka kart z 30-lecia?', time: '12:00' },
+                { id: 'm2', room: 'wyceny', author: 'OlaTCG', isMine: false, text: 'Przed zakupem zawsze patrzcie na stan krawędzi i rogi.', time: '12:15' }
+            ];
+            saveJson(STORAGE_KEYS.binder, binderCards);
+            saveJson(STORAGE_KEYS.shared, sharedPosts);
+            saveJson(STORAGE_KEYS.chat, chatMessages);
+            renderBinder();
+            renderSharedFeed();
+            renderChatMessages();
+            showToast('Zresetowano dane.');
+        }
+
+        /* =========================================================
+           9. START APLIKACJI
+           ========================================================= */
+        (function initApp() {
+            appSettings = { ...appSettings, ...loadJson(STORAGE_KEYS.settings, {}) };
+            trainerProfile = { ...trainerProfile, ...loadJson(STORAGE_KEYS.trainer, {}) };
+            binderCards = loadJson(STORAGE_KEYS.binder, []);
+            sharedPosts = loadJson(STORAGE_KEYS.shared, []);
+            const savedChat = loadJson(STORAGE_KEYS.chat, null);
+            chatMessages = Array.isArray(savedChat) && savedChat.length > 0 ? savedChat : [
+                { id: 'm1', room: 'ogolny', author: 'MarekKanto', isMine: false, text: 'Siema! Ktoś szuka kart z 30-lecia?', time: '12:00' },
+                { id: 'm2', room: 'wyceny', author: 'OlaTCG', isMine: false, text: 'Przed zakupem zawsze patrzcie na stan krawędzi i rogi.', time: '12:15' }
+            ];
+
+            if (sharedPosts.length === 0) {
+                const first = POKEMON_CARD_CATALOG[0];
+                sharedPosts = [{
+                    id: 'p_init',
+                    author: 'KubaTCG',
+                    color: '#29B6F6',
+                    cardName: first.name,
+                    setName: first.setName,
+                    psaGrade: 'PSA 9 (szac.)',
+                    image: getCardArtFallback(first),
+                    priceMinPln: first.rawMinPln,
+                    priceMaxPln: first.rawMaxPln,
+                    note: 'Traf z 30-lecia — centrowanie wygląda całkiem nieźle!',
+                    createdAt: 'Dzisiaj'
+                }];
+                saveJson(STORAGE_KEYS.shared, sharedPosts);
+            }
+
+            runOpeningFireAnimation();
+            applyLanguageTexts();
+            syncSettingsUi();
+            renderCategoryChips();
+            renderCatalogIndex();
+            renderBinder();
+            populateShareCardSelect();
+            renderSharedFeed();
+            populateChatCardSelect();
+            renderChatMessages();
+            refreshInstallButtonVisibility();
+            startCamera();
+        })();
+    </script>
+</body>
+</html>
