@@ -48,7 +48,7 @@
             background-size: 18px 18px;
             color: var(--ink-black);
             font-family: var(--font-ui);
-            overscroll-behavior-y: none;
+            touch-action: manipulation;
         }
 
         .app-stage {
@@ -57,6 +57,8 @@
             justify-content: center;
             align-items: flex-start;
             padding: 0;
+            position: relative;
+            z-index: 1;
         }
 
         @media (min-width: 520px) {
@@ -74,6 +76,7 @@
             flex-direction: column;
             position: relative;
             overflow-x: hidden;
+            z-index: 2;
         }
 
         @media (min-width: 520px) {
@@ -86,21 +89,20 @@
         .pt-safe { padding-top: max(10px, env(safe-area-inset-top)); }
         .pb-safe { padding-bottom: max(10px, env(safe-area-inset-bottom)); }
 
-        /* Anime ognie powitalne (1.5s) */
+        /* Anime ognie powitalne (1.5s) — nigdy nie blokują klikania */
         .opening-fire-layer {
             position: fixed;
             inset: 0;
-            z-index: 120;
-            pointer-events: none;
+            z-index: 5;
+            pointer-events: none !important;
             overflow: hidden;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.22s ease, visibility 0.22s ease;
+            opacity: 1;
+            transition: opacity 0.2s ease;
         }
 
-        .opening-fire-layer.active {
-            opacity: 1;
-            visibility: visible;
+        .opening-fire-layer.done {
+            opacity: 0;
+            display: none !important;
         }
 
         .anime-fire-bank {
@@ -113,6 +115,7 @@
             flex-direction: column;
             justify-content: space-between;
             padding: 16px 0;
+            pointer-events: none !important;
         }
 
         .anime-fire-bank.left { left: -8px; transform-origin: left center; }
@@ -123,6 +126,7 @@
             height: 78px;
             width: 100%;
             margin: -8px 0;
+            pointer-events: none !important;
         }
 
         .anime-outer-flame {
@@ -133,6 +137,7 @@
             margin-top: -32px;
             clip-path: polygon(0% 50%, 20% 10%, 44% 26%, 68% 4%, 100% 50%, 68% 96%, 44% 74%, 20% 90%);
             filter: drop-shadow(0 0 8px rgba(255, 120, 0, 0.85));
+            pointer-events: none !important;
         }
 
         .anime-fire-bank.left .anime-outer-flame {
@@ -157,6 +162,7 @@
             margin-top: -15px;
             clip-path: polygon(0% 50%, 26% 18%, 58% 32%, 100% 50%, 58% 68%, 26% 82%);
             background: linear-gradient(90deg, #FDE047, #FFFFFF);
+            pointer-events: none !important;
         }
 
         .anime-fire-bank.left .anime-inner-flame {
@@ -180,6 +186,7 @@
             border-radius: 2px;
             background-color: #FEF08A;
             box-shadow: 0 0 6px #FACC15;
+            pointer-events: none !important;
         }
 
         .anime-fire-bank.left .anime-spark {
@@ -268,6 +275,7 @@
                 2px 2px 0px var(--ink-black);
             position: relative;
             flex-shrink: 0;
+            pointer-events: none;
         }
 
         .lens-blue::after {
@@ -287,6 +295,7 @@
             align-items: center;
             gap: 5px;
             margin-bottom: 2px;
+            pointer-events: none;
         }
 
         .mini-led {
@@ -309,6 +318,7 @@
             text-shadow: 2px 2px 0px var(--ink-black);
             line-height: 1.1;
             white-space: nowrap;
+            pointer-events: none;
         }
 
         .account-pill {
@@ -325,6 +335,9 @@
             font-weight: 800;
             cursor: pointer;
             box-shadow: 2px 2px 0px var(--ink-black);
+            position: relative;
+            z-index: 45;
+            pointer-events: auto;
         }
 
         .account-dot {
@@ -333,6 +346,11 @@
             border-radius: 999px;
             background-color: #EF4444;
             border: 1px solid var(--ink-black);
+        }
+
+        button, input, select {
+            position: relative;
+            pointer-events: auto;
         }
 
         .tcg-btn {
@@ -354,6 +372,7 @@
             box-shadow: 3px 3px 0px var(--ink-black);
             transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.14s ease;
             user-select: none;
+            z-index: 20;
         }
 
         .tcg-btn:active {
@@ -384,6 +403,8 @@
             flex-direction: column;
             gap: 12px;
             padding-bottom: 84px;
+            position: relative;
+            z-index: 10;
         }
 
         .tab-view {
@@ -400,6 +421,8 @@
             overflow-x: auto;
             padding-bottom: 2px;
             scrollbar-width: none;
+            position: relative;
+            z-index: 20;
         }
 
         .scan-categories-bar::-webkit-scrollbar { display: none; }
@@ -416,6 +439,7 @@
             font-weight: 900;
             cursor: pointer;
             box-shadow: 2px 2px 0px var(--ink-black);
+            z-index: 21;
         }
 
         .scan-cat-btn.active { background-color: var(--led-amber); }
@@ -426,6 +450,8 @@
             border-radius: 12px;
             padding: 10px;
             box-shadow: var(--shadow-hard);
+            position: relative;
+            z-index: 12;
         }
 
         .viewfinder-topbar {
@@ -480,12 +506,13 @@
             height: 100%;
             object-fit: cover;
             display: block;
+            pointer-events: none;
         }
 
         .centering-grid {
             position: absolute;
             inset: 8px;
-            pointer-events: none;
+            pointer-events: none !important;
             z-index: 4;
             border: 2px dashed rgba(250, 204, 21, 0.78);
             border-radius: 7px;
@@ -517,7 +544,7 @@
             height: 18px;
             border-color: #FACC15;
             border-style: solid;
-            pointer-events: none;
+            pointer-events: none !important;
             z-index: 5;
         }
 
@@ -533,7 +560,7 @@
             height: 3px;
             background: linear-gradient(90deg, transparent, #FF2A4B, #FACC15, #FF2A4B, transparent);
             z-index: 6;
-            pointer-events: none;
+            pointer-events: none !important;
             top: 10%;
             animation: scanSweep 2.8s ease-in-out infinite;
         }
@@ -551,7 +578,8 @@
             flex-direction: column;
             align-items: center;
             gap: 10px;
-            z-index: 3;
+            z-index: 15;
+            position: relative;
         }
 
         .placeholder-box h2 {
@@ -581,6 +609,8 @@
             padding: 7px 10px;
             color: #F4F4F5;
             font-size: 11.5px;
+            position: relative;
+            z-index: 16;
         }
 
         .not-card-banner {
@@ -595,6 +625,8 @@
             font-size: 15px;
             letter-spacing: 0.04em;
             text-transform: uppercase;
+            position: relative;
+            z-index: 15;
         }
 
         .card-hit-banner {
@@ -607,6 +639,8 @@
             font-weight: 900;
             font-size: 13.5px;
             line-height: 1.35;
+            position: relative;
+            z-index: 15;
         }
 
         .paper-panel {
@@ -616,6 +650,8 @@
             border-radius: 10px;
             box-shadow: var(--shadow-hard);
             padding: 12px;
+            position: relative;
+            z-index: 14;
         }
 
         .paper-panel.warm { background-color: var(--paper-warm); }
@@ -679,7 +715,8 @@
             display: grid;
             grid-template-columns: repeat(6, 1fr);
             gap: 5px;
-            z-index: 60;
+            z-index: 80;
+            pointer-events: auto;
         }
 
         .tab-btn {
@@ -700,6 +737,7 @@
             font-weight: 900;
             text-transform: uppercase;
             line-height: 1.05;
+            z-index: 85;
         }
 
         .tab-btn.active {
@@ -707,12 +745,12 @@
             transform: translateY(-2px);
         }
 
-        .tab-icon { font-size: 13px; line-height: 1; }
+        .tab-icon { font-size: 13px; line-height: 1; pointer-events: none; }
         .is-hidden { display: none !important; }
     </style>
 </head>
 <body>
-    <div id="openingFireLayer" class="opening-fire-layer active" aria-hidden="true">
+    <div id="openingFireLayer" class="opening-fire-layer" aria-hidden="true">
         <div class="anime-fire-bank left">
             <div class="anime-flame-row" style="--f-delay: 0ms;"><div class="anime-outer-flame"></div><div class="anime-inner-flame"></div><div class="anime-spark"></div></div>
             <div class="anime-flame-row" style="--f-delay: 60ms;"><div class="anime-outer-flame"></div><div class="anime-inner-flame"></div><div class="anime-spark"></div></div>
@@ -891,8 +929,8 @@
 
     <script>
         (function () {
-            const INSTALLED_KEY = "skaner_pokemonow_pwa_installed_v5";
-            const PREFS_KEY = "skaner_pokemonow_prefs_v5";
+            const INSTALLED_KEY = "skaner_pokemonow_pwa_installed_v6";
+            const PREFS_KEY = "skaner_pokemonow_prefs_v6";
 
             const openingFireLayer = document.getElementById("openingFireLayer");
             const installPwaBtn = document.getElementById("installPwaBtn");
@@ -935,3 +973,430 @@
             const catPills = document.querySelectorAll(".cat-pill");
             const binderList = document.getElementById("binderList");
             const cardsTabList = document.getElementById("cardsTabList");
+
+            const chatMessages = document.getElementById("chatMessages");
+            const chatInput = document.getElementById("chatInput");
+            const sendChatBtn = document.getElementById("sendChatBtn");
+
+            const catalogData = [
+                { name: "Charizard ex", cat: "holo", psa: "PSA 9 Mint", pln: 240 },
+                { name: "Pikachu Holo", cat: "holo", psa: "PSA 10 Gem Mint", pln: 380 },
+                { name: "Umbreon VMAX", cat: "vmax", psa: "PSA 9 Mint", pln: 670 },
+                { name: "Rayquaza VMAX", cat: "vmax", psa: "PSA 10 Gem Mint", pln: 520 },
+                { name: "Blastoise ex", cat: "holo", psa: "PSA 8 NM-MT", pln: 165 },
+                { name: "Gengar VMAX", cat: "vmax", psa: "PSA 9 Mint", pln: 310 },
+                { name: "Boss's Orders", cat: "trainers", psa: "PSA 10 Gem Mint", pln: 95 },
+                { name: "Lightning Energy Holo", cat: "trainers", psa: "PSA 9 Mint", pln: 65 }
+            ];
+
+            const savedBinder = [];
+            let activeScanCat = "all";
+            let activeIndexCat = "all";
+            let currentStream = null;
+            let facingMode = "environment";
+            let isPhotoPreview = false;
+            let deferredPrompt = null;
+
+            function hideFireNow() {
+                if (openingFireLayer) {
+                    openingFireLayer.classList.add("done");
+                }
+            }
+
+            setTimeout(hideFireNow, 1500);
+            window.addEventListener("pointerdown", hideFireNow, { once: true, passive: true });
+
+            function loadPrefs() {
+                try { return JSON.parse(localStorage.getItem(PREFS_KEY) || "{}"); } catch (_) { return {}; }
+            }
+
+            function savePrefs(patch) {
+                try { localStorage.setItem(PREFS_KEY, JSON.stringify({ ...loadPrefs(), ...patch })); } catch (_) {}
+            }
+
+            const prefs = loadPrefs();
+            if (prefs.currency) {
+                optCurrency.value = prefs.currency;
+                topCurrencyBadge.textContent = prefs.currency;
+            }
+            if (prefs.account) {
+                optAccountInput.value = prefs.account;
+                accountPillLabel.textContent = prefs.account;
+            }
+
+            function isStandaloneNow() {
+                return Boolean(
+                    (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+                    window.navigator.standalone === true
+                );
+            }
+
+            function isInstalledFlag() {
+                try { return isStandaloneNow() || localStorage.getItem(INSTALLED_KEY) === "1"; } catch (_) { return isStandaloneNow(); }
+            }
+
+            function updateInstallButtonState() {
+                if (isStandaloneNow()) {
+                    try { localStorage.setItem(INSTALLED_KEY, "1"); } catch (_) {}
+                }
+                if (isInstalledFlag()) {
+                    installPwaBtn.classList.add("is-hidden-installed");
+                } else {
+                    installPwaBtn.classList.remove("is-hidden-installed");
+                }
+            }
+
+            try {
+                const iconSvg = encodeURIComponent(
+                    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="36" fill="#DC0A2D"/><circle cx="96" cy="96" r="56" fill="#F7F4EB" stroke="#18181B" stroke-width="10"/><line x1="40" y1="96" x2="152" y2="96" stroke="#18181B" stroke-width="10"/><circle cx="96" cy="96" r="18" fill="#FBC02D" stroke="#18181B" stroke-width="8"/></svg>'
+                );
+                const manifest = {
+                    name: "Skaner Pokemonów",
+                    short_name: "Skaner PKM",
+                    start_url: "./",
+                    scope: "./",
+                    display: "standalone",
+                    background_color: "#DC0A2D",
+                    theme_color: "#DC0A2D",
+                    icons: [{ src: `data:image/svg+xml,${iconSvg}`, sizes: "192x192", type: "image/svg+xml", purpose: "any maskable" }]
+                };
+                const mUrl = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" }));
+                const mLink = document.createElement("link");
+                mLink.rel = "manifest";
+                mLink.href = mUrl;
+                document.head.appendChild(mLink);
+
+                if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+                    const swCode = `
+                        self.addEventListener("install", e => self.skipWaiting());
+                        self.addEventListener("activate", e => e.waitUntil(self.clients.claim()));
+                        self.addEventListener("fetch", event => {
+                            if (event.request.method !== "GET") return;
+                            event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+                        });
+                    `;
+                    const swUrl = URL.createObjectURL(new Blob([swCode], { type: "application/javascript" }));
+                    navigator.serviceWorker.register(swUrl, { scope: "./" }).catch(() => {});
+                }
+            } catch (_) {}
+
+            window.addEventListener("beforeinstallprompt", (e) => {
+                if (isInstalledFlag()) return;
+                e.preventDefault();
+                deferredPrompt = e;
+                installPwaBtn.classList.remove("is-hidden-installed");
+            });
+
+            window.addEventListener("appinstalled", () => {
+                try { localStorage.setItem(INSTALLED_KEY, "1"); } catch (_) {}
+                deferredPrompt = null;
+                updateInstallButtonState();
+            });
+
+            installPwaBtn.addEventListener("click", async () => {
+                hideFireNow();
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const res = await deferredPrompt.userChoice;
+                    deferredPrompt = null;
+                    if (res && res.outcome === "accepted") {
+                        try { localStorage.setItem(INSTALLED_KEY, "1"); } catch (_) {}
+                        updateInstallButtonState();
+                        return;
+                    }
+                }
+                switchToTab("options");
+                alert("Aby zainstalować na telefonie: otwórz menu przeglądarki (⋮ lub Udostępnij) i wybierz „Dodaj do ekranu głównego”.");
+            });
+
+            markInstalledManualBtn.addEventListener("click", () => {
+                try { localStorage.setItem(INSTALLED_KEY, "1"); } catch (_) {}
+                updateInstallButtonState();
+            });
+
+            updateInstallButtonState();
+
+            scanCatButtons.forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    hideFireNow();
+                    scanCatButtons.forEach((b) => b.classList.remove("active"));
+                    btn.classList.add("active");
+                    activeScanCat = btn.getAttribute("data-scan-cat") || "all";
+                });
+            });
+
+            function switchToTab(tabName) {
+                hideFireNow();
+                tabButtons.forEach((btn) => btn.classList.toggle("active", btn.getAttribute("data-tab") === tabName));
+                Object.keys(tabViews).forEach((key) => tabViews[key].classList.toggle("active", key === tabName));
+            }
+
+            tabButtons.forEach((btn) => btn.addEventListener("click", () => switchToTab(btn.getAttribute("data-tab"))));
+
+            accountPillBtn.addEventListener("click", () => {
+                switchToTab("options");
+                optAccountInput.focus();
+            });
+
+            optCurrency.addEventListener("change", () => {
+                const c = optCurrency.value;
+                topCurrencyBadge.textContent = c;
+                savePrefs({ currency: c });
+                renderIndexAndCards();
+            });
+
+            optAccountInput.addEventListener("change", () => {
+                const val = optAccountInput.value.trim();
+                accountPillLabel.textContent = val || "Gość • Załóż konto";
+                savePrefs({ account: val });
+            });
+
+            function formatPrice(pln) {
+                const c = optCurrency.value || "PLN";
+                const mult = c === "EUR" ? 0.23 : c === "USD" ? 0.25 : 1;
+                return `${Math.max(5, Math.round(pln * mult))} ${c}`;
+            }
+
+            function renderIndexAndCards() {
+                const q = (indexSearchInput.value || "").trim().toLowerCase();
+                const list = catalogData.filter((item) => {
+                    const matchCat = activeIndexCat === "all" || item.cat === activeIndexCat;
+                    const matchQ = !q || item.name.toLowerCase().includes(q);
+                    return matchCat && matchQ;
+                });
+
+                indexCardsGrid.innerHTML = list.map((item) => `
+                    <div class="index-item">
+                        <div style="font-weight:900; font-size:12px;">${item.name}</div>
+                        <div style="font-size:10.5px; color:#52525B; font-weight:700;">${item.psa}</div>
+                        <div style="font-weight:900; font-size:12px; color:#991B1B;">${formatPrice(item.pln)}</div>
+                    </div>
+                `).join("");
+
+                cardsTabList.innerHTML = catalogData.map((item) => `
+                    <div class="paper-panel warm" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-weight:900; font-size:12.5px;">${item.name}</div>
+                            <div style="font-size:11px; color:#52525B; font-weight:700;">Stan: ${item.psa}</div>
+                        </div>
+                        <div style="font-weight:900; font-size:13px;">${formatPrice(item.pln)}</div>
+                    </div>
+                `).join("");
+            }
+
+            catPills.forEach((pill) => {
+                pill.addEventListener("click", () => {
+                    catPills.forEach((p) => p.classList.remove("active"));
+                    pill.classList.add("active");
+                    activeIndexCat = pill.getAttribute("data-index-cat") || "all";
+                    renderIndexAndCards();
+                });
+            });
+
+            indexSearchInput.addEventListener("input", renderIndexAndCards);
+            renderIndexAndCards();
+
+            function addCardToBinder(card) {
+                savedBinder.unshift({ ...card, time: new Date().toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) });
+                binderList.innerHTML = savedBinder.map((item) => `
+                    <div class="paper-panel warm" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-weight:900; font-size:12.5px;">${item.name} (${item.psa})</div>
+                            <div style="font-size:10.5px; color:#52525B; font-weight:700;">Dodano: ${item.time}</div>
+                        </div>
+                        <div style="font-weight:900; font-size:12.5px;">${formatPrice(item.pln)}</div>
+                    </div>
+                `).join("");
+            }
+
+            async function startCamera() {
+                hideFireNow();
+                isPhotoPreview = false;
+                previewImg.classList.add("is-hidden");
+                cameraVideo.classList.remove("is-hidden");
+                cameraIdleOverlay.classList.add("is-hidden");
+
+                if (currentStream) {
+                    currentStream.getTracks().forEach((tr) => tr.stop());
+                    currentStream = null;
+                }
+
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    cameraIdleOverlay.classList.remove("is-hidden");
+                    scannerStateLabel.textContent = "BRAK KAMERY";
+                    return;
+                }
+
+                try {
+                    currentStream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode },
+                        audio: false
+                    });
+                    cameraVideo.srcObject = currentStream;
+                    await cameraVideo.play();
+                    scannerStateLabel.textContent = facingMode === "environment" ? "TYŁ AKTYWNY" : "PRZÓD AKTYWNY";
+                } catch (_) {
+                    cameraIdleOverlay.classList.remove("is-hidden");
+                    scannerStateLabel.textContent = "GOTOWY";
+                }
+            }
+
+            enableCameraBtn.addEventListener("click", startCamera);
+            switchCamBtn.addEventListener("click", () => {
+                facingMode = facingMode === "environment" ? "user" : "environment";
+                startCamera();
+            });
+
+            galleryUploadBtn.addEventListener("click", () => {
+                hideFireNow();
+                galleryInput.click();
+            });
+            galleryInput.addEventListener("change", (ev) => {
+                const file = ev.target.files && ev.target.files[0];
+                if (!file) return;
+                selectedFileText.textContent = file.name;
+                const reader = new FileReader();
+                reader.onload = () => {
+                    previewImg.onload = () => {
+                        isPhotoPreview = true;
+                        cameraVideo.classList.add("is-hidden");
+                        cameraIdleOverlay.classList.add("is-hidden");
+                        previewImg.classList.remove("is-hidden");
+                        evaluateScan();
+                    };
+                    previewImg.src = reader.result;
+                };
+                reader.readAsDataURL(file);
+            });
+
+            function isAccuratePokemonCardFrame(ctx, w, h) {
+                const px = ctx.getImageData(0, 0, w, h).data;
+                const lum = new Float32Array(w * h);
+
+                let totalColorful = 0;
+                let centerColorful = 0;
+                let borderEdges = 0;
+                let borderSamples = 0;
+                let innerEdges = 0;
+                let innerSamples = 0;
+
+                const cx0 = Math.floor(w * 0.22);
+                const cx1 = Math.floor(w * 0.78);
+                const cy0 = Math.floor(h * 0.18);
+                const cy1 = Math.floor(h * 0.68);
+
+                for (let y = 0; y < h; y++) {
+                    for (let x = 0; x < w; x++) {
+                        const idx = y * w + x;
+                        const i = idx * 4;
+                        const r = px[i], g = px[i + 1], b = px[i + 2];
+                        const l = 0.299 * r + 0.587 * g + 0.114 * b;
+                        lum[idx] = l;
+
+                        const span = Math.max(r, g, b) - Math.min(r, g, b);
+                        if (span > 65 && l > 48 && l < 232) {
+                            totalColorful++;
+                            if (x >= cx0 && x <= cx1 && y >= cy0 && y <= cy1) {
+                                centerColorful++;
+                            }
+                        }
+                    }
+                }
+
+                for (let y = 1; y < h - 1; y++) {
+                    for (let x = 1; x < w - 1; x++) {
+                        const idx = y * w + x;
+                        const grad =
+                            Math.abs(lum[idx + 1] - lum[idx - 1]) +
+                            Math.abs(lum[idx + w] - lum[idx - w]);
+                        const isEdge = grad > 76;
+
+                        const isOuterBorder = x < 14 || x > w - 15 || y < 14 || y > h - 15;
+                        if (isOuterBorder) {
+                            borderSamples++;
+                            if (isEdge) borderEdges++;
+                        } else {
+                            innerSamples++;
+                            if (isEdge) innerEdges++;
+                        }
+                    }
+                }
+
+                const total = w * h;
+                const centerArea = Math.max(1, (cx1 - cx0) * (cy1 - cy0));
+                const colorRatio = totalColorful / total;
+                const centerColorRatio = centerColorful / centerArea;
+                const borderEdgeRatio = borderEdges / Math.max(1, borderSamples);
+                const innerEdgeRatio = innerEdges / Math.max(1, innerSamples);
+
+                const isCard =
+                    innerEdgeRatio > 0.11 &&
+                    innerEdgeRatio < 0.44 &&
+                    borderEdgeRatio > 0.06 &&
+                    colorRatio > 0.14 &&
+                    centerColorRatio > 0.15;
+
+                return { isCard, innerEdgeRatio, colorRatio };
+            }
+
+            function evaluateScan() {
+                hideFireNow();
+                const ctx = frameCanvas.getContext("2d");
+                ctx.clearRect(0, 0, frameCanvas.width, frameCanvas.height);
+
+                let ready = false;
+                if (isPhotoPreview && previewImg.complete && previewImg.naturalWidth > 0) {
+                    ctx.drawImage(previewImg, 0, 0, frameCanvas.width, frameCanvas.height);
+                    ready = true;
+                } else if (cameraVideo.readyState >= 2) {
+                    ctx.drawImage(cameraVideo, 0, 0, frameCanvas.width, frameCanvas.height);
+                    ready = true;
+                }
+
+                if (!ready) {
+                    cardHitBanner.classList.add("is-hidden");
+                    notPokemonAlert.classList.remove("is-hidden");
+                    return;
+                }
+
+                const res = isAccuratePokemonCardFrame(ctx, frameCanvas.width, frameCanvas.height);
+                if (!res.isCard) {
+                    cardHitBanner.classList.add("is-hidden");
+                    notPokemonAlert.classList.remove("is-hidden");
+                    return;
+                }
+
+                notPokemonAlert.classList.add("is-hidden");
+                const pool = activeScanCat === "all"
+                    ? catalogData
+                    : catalogData.filter((c) => c.cat === activeScanCat);
+                const list = pool.length ? pool : catalogData;
+                const picked = list[Math.abs(Math.floor(res.innerEdgeRatio * 1200 + res.colorRatio * 600)) % list.length];
+                cardHitBanner.classList.remove("is-hidden");
+                cardHitBanner.textContent = `${picked.name} • ${picked.psa} • ~${formatPrice(picked.pln)}`;
+                addCardToBinder(picked);
+            }
+
+            scanCardBtn.addEventListener("click", evaluateScan);
+
+            sendChatBtn.addEventListener("click", () => {
+                const text = (chatInput.value || "").trim();
+                if (!text) return;
+                const userBubble = document.createElement("div");
+                userBubble.className = "paper-panel warm";
+                userBubble.style.fontSize = "12px";
+                userBubble.style.fontWeight = "700";
+                userBubble.textContent = `Ty: ${text}`;
+                chatMessages.appendChild(userBubble);
+
+                const botBubble = document.createElement("div");
+                botBubble.className = "crt-box";
+                botBubble.style.fontSize = "12px";
+                botBubble.textContent = "Skaner: Detektor sprawdza krawędzie i kolory w kadrze, więc płaskie obiekty jak stół czy ściana zwrócą TO NIE JEST KARTA POKEMON.";
+                chatMessages.appendChild(botBubble);
+                chatInput.value = "";
+            });
+        })();
+    </script>
+</body>
+</html>
