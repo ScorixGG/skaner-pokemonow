@@ -60,9 +60,7 @@
         }
 
         @media (min-width: 520px) {
-            .app-stage {
-                padding: 16px 12px 28px;
-            }
+            .app-stage { padding: 16px 12px 28px; }
         }
 
         .pokedex-shell {
@@ -88,9 +86,7 @@
         .pt-safe { padding-top: max(10px, env(safe-area-inset-top)); }
         .pb-safe { padding-bottom: max(10px, env(safe-area-inset-bottom)); }
 
-        /* =========================================================
-           ANIME OGNIE POWITALNE (1.5 SEKUNDY Z LEWEJ I PRAWEJ)
-           ========================================================= */
+        /* Anime ognie powitalne (1.5s) */
         .opening-fire-layer {
             position: fixed;
             inset: 0;
@@ -119,15 +115,8 @@
             padding: 16px 0;
         }
 
-        .anime-fire-bank.left {
-            left: -8px;
-            transform-origin: left center;
-        }
-
-        .anime-fire-bank.right {
-            right: -8px;
-            transform-origin: right center;
-        }
+        .anime-fire-bank.left { left: -8px; transform-origin: left center; }
+        .anime-fire-bank.right { right: -8px; transform-origin: right center; }
 
         .anime-flame-row {
             position: relative;
@@ -243,9 +232,7 @@
             100% { transform: translate(-115px, -34px) scale(0.2); opacity: 0; }
         }
 
-        /* =========================================================
-           NAGŁÓWEK POKÉDEXA
-           ========================================================= */
+        /* Nagłówek */
         .dex-header {
             background-color: var(--dex-red);
             border-bottom: var(--border-w) solid var(--ink-black);
@@ -387,13 +374,9 @@
             padding: 11px 13px;
         }
 
-        .tcg-btn.is-hidden-installed {
-            display: none !important;
-        }
+        .tcg-btn.is-hidden-installed { display: none !important; }
 
-        /* =========================================================
-           GŁÓWNA TREŚĆ, KATEGORIE I ZAKŁADKI
-           ========================================================= */
+        /* Główna treść i zakładki */
         .dex-main {
             flex: 1;
             padding: 12px;
@@ -409,9 +392,7 @@
             gap: 12px;
         }
 
-        .tab-view.active {
-            display: flex;
-        }
+        .tab-view.active { display: flex; }
 
         .scan-categories-bar {
             display: flex;
@@ -437,9 +418,7 @@
             box-shadow: 2px 2px 0px var(--ink-black);
         }
 
-        .scan-cat-btn.active {
-            background-color: var(--led-amber);
-        }
+        .scan-cat-btn.active { background-color: var(--led-amber); }
 
         .viewfinder-outer {
             background-color: #141417;
@@ -685,9 +664,7 @@
             cursor: pointer;
         }
 
-        .cat-pill.active {
-            background-color: var(--led-amber);
-        }
+        .cat-pill.active { background-color: var(--led-amber); }
 
         .bottom-tabs-bar {
             position: fixed;
@@ -730,16 +707,11 @@
             transform: translateY(-2px);
         }
 
-        .tab-icon {
-            font-size: 13px;
-            line-height: 1;
-        }
-
+        .tab-icon { font-size: 13px; line-height: 1; }
         .is-hidden { display: none !important; }
     </style>
 </head>
 <body>
-    <!-- Anime ognie powitalne (1.5s) -->
     <div id="openingFireLayer" class="opening-fire-layer active" aria-hidden="true">
         <div class="anime-fire-bank left">
             <div class="anime-flame-row" style="--f-delay: 0ms;"><div class="anime-outer-flame"></div><div class="anime-inner-flame"></div><div class="anime-spark"></div></div>
@@ -784,7 +756,7 @@
             </header>
 
             <main class="dex-main">
-                <!-- 1. ZAKŁADKA: SKANER -->
+                <!-- 1. SKANER -->
                 <section id="view-scanner" class="tab-view active">
                     <div id="scanCategoriesBar" class="scan-categories-bar" role="tablist" aria-label="Kategorie skanowania">
                         <button type="button" class="scan-cat-btn active" data-scan-cat="all">Wszystkie</button>
@@ -833,7 +805,7 @@
                     <div id="cardHitBanner" class="card-hit-banner is-hidden"></div>
                 </section>
 
-                <!-- 2. ZAKŁADKA: INDEKS -->
+                <!-- 2. INDEKS -->
                 <section id="view-index" class="tab-view">
                     <div class="paper-panel">
                         <div style="font-weight:900; font-size:14px; margin-bottom:8px;">Indeks kart Pokémon</div>
@@ -848,18 +820,18 @@
                     </div>
                 </section>
 
-                <!-- 3. ZAKŁADKA: KLASER -->
+                <!-- 3. KLASER -->
                 <section id="view-binder" class="tab-view">
                     <div class="paper-panel">
                         <div style="font-weight:900; font-size:14px; margin-bottom:6px;">Twój klaser</div>
-                        <div style="font-size:12px; color:#52525B; margin-bottom:10px;">Zapisane karty z Twoich skanów (strony klasera 3×3).</div>
+                        <div style="font-size:12px; color:#52525B; margin-bottom:10px;">Zapisane karty z Twoich skanów.</div>
                         <div id="binderList" style="display:flex; flex-direction:column; gap:8px;">
-                            <div class="paper-panel warm" style="font-size:12px; font-weight:700;">Klaser jest na razie pusty — zeskanuj kartę w zakładce Skaner.</div>
+                            <div class="paper-panel warm" style="font-size:12px; font-weight:700;">Klaser jest pusty — zeskanuj kartę w zakładce Skaner.</div>
                         </div>
                     </div>
                 </section>
 
-                <!-- 4. ZAKŁADKA: KARTY -->
+                <!-- 4. KARTY -->
                 <section id="view-cards" class="tab-view">
                     <div class="paper-panel">
                         <div style="font-weight:900; font-size:14px; margin-bottom:8px;">Lista kart i wyceny PSA</div>
@@ -867,7 +839,7 @@
                     </div>
                 </section>
 
-                <!-- 5. ZAKŁADKA: CZAT -->
+                <!-- 5. CZAT -->
                 <section id="view-chat" class="tab-view">
                     <div class="paper-panel">
                         <div style="font-weight:900; font-size:14px; margin-bottom:8px;">Czat skanera</div>
@@ -881,7 +853,7 @@
                     </div>
                 </section>
 
-                <!-- 6. ZAKŁADKA: OPCJE -->
+                <!-- 6. OPCJE -->
                 <section id="view-options" class="tab-view">
                     <div class="paper-panel">
                         <div style="font-weight:900; font-size:14px; margin-bottom:10px;">Opcje i ustawienia</div>
@@ -904,32 +876,13 @@
                 </section>
             </main>
 
-            <!-- Dolny pasek 6 zakładek -->
             <nav class="bottom-tabs-bar" aria-label="Zakładki aplikacji">
-                <button type="button" class="tab-btn active" data-tab="scanner">
-                    <span class="tab-icon">⛶</span>
-                    <span>SKANER</span>
-                </button>
-                <button type="button" class="tab-btn" data-tab="index">
-                    <span class="tab-icon">⌕</span>
-                    <span>INDEKS</span>
-                </button>
-                <button type="button" class="tab-btn" data-tab="binder">
-                    <span class="tab-icon">▤</span>
-                    <span>KLASER</span>
-                </button>
-                <button type="button" class="tab-btn" data-tab="cards">
-                    <span class="tab-icon">❐</span>
-                    <span>KARTY</span>
-                </button>
-                <button type="button" class="tab-btn" data-tab="chat">
-                    <span class="tab-icon">💬</span>
-                    <span>CZAT</span>
-                </button>
-                <button type="button" class="tab-btn" data-tab="options">
-                    <span class="tab-icon">⚙</span>
-                    <span>OPCJE</span>
-                </button>
+                <button type="button" class="tab-btn active" data-tab="scanner"><span class="tab-icon">⛶</span><span>SKANER</span></button>
+                <button type="button" class="tab-btn" data-tab="index"><span class="tab-icon">⌕</span><span>INDEKS</span></button>
+                <button type="button" class="tab-btn" data-tab="binder"><span class="tab-icon">▤</span><span>KLASER</span></button>
+                <button type="button" class="tab-btn" data-tab="cards"><span class="tab-icon">❐</span><span>KARTY</span></button>
+                <button type="button" class="tab-btn" data-tab="chat"><span class="tab-icon">💬</span><span>CZAT</span></button>
+                <button type="button" class="tab-btn" data-tab="options"><span class="tab-icon">⚙</span><span>OPCJE</span></button>
             </nav>
         </div>
     </div>
@@ -938,8 +891,8 @@
 
     <script>
         (function () {
-            const INSTALLED_KEY = "skaner_pokemonow_pwa_installed_final";
-            const PREFS_KEY = "skaner_pokemonow_prefs_final";
+            const INSTALLED_KEY = "skaner_pokemonow_pwa_installed_v5";
+            const PREFS_KEY = "skaner_pokemonow_prefs_v5";
 
             const openingFireLayer = document.getElementById("openingFireLayer");
             const installPwaBtn = document.getElementById("installPwaBtn");
@@ -982,405 +935,3 @@
             const catPills = document.querySelectorAll(".cat-pill");
             const binderList = document.getElementById("binderList");
             const cardsTabList = document.getElementById("cardsTabList");
-
-            const chatMessages = document.getElementById("chatMessages");
-            const chatInput = document.getElementById("chatInput");
-            const sendChatBtn = document.getElementById("sendChatBtn");
-
-            const catalogData = [
-                { name: "Charizard ex", cat: "holo", psa: "PSA 9 Mint", pln: 240 },
-                { name: "Pikachu Holo", cat: "holo", psa: "PSA 10 Gem Mint", pln: 380 },
-                { name: "Umbreon VMAX", cat: "vmax", psa: "PSA 9 Mint", pln: 670 },
-                { name: "Rayquaza VMAX", cat: "vmax", psa: "PSA 10 Gem Mint", pln: 520 },
-                { name: "Blastoise ex", cat: "holo", psa: "PSA 8 NM-MT", pln: 165 },
-                { name: "Gengar VMAX", cat: "vmax", psa: "PSA 9 Mint", pln: 310 },
-                { name: "Boss's Orders", cat: "trainers", psa: "PSA 10 Gem Mint", pln: 95 },
-                { name: "Lightning Energy Holo", cat: "trainers", psa: "PSA 9 Mint", pln: 65 }
-            ];
-
-            const savedBinder = [];
-            let activeScanCat = "all";
-            let activeIndexCat = "all";
-            let currentStream = null;
-            let facingMode = "environment";
-            let isPhotoPreview = false;
-            let deferredPrompt = null;
-
-            function loadPrefs() {
-                try {
-                    return JSON.parse(localStorage.getItem(PREFS_KEY) || "{}");
-                } catch (_) {
-                    return {};
-                }
-            }
-
-            function savePrefs(patch) {
-                try {
-                    localStorage.setItem(PREFS_KEY, JSON.stringify({ ...loadPrefs(), ...patch }));
-                } catch (_) {}
-            }
-
-            const prefs = loadPrefs();
-            if (prefs.currency) {
-                optCurrency.value = prefs.currency;
-                topCurrencyBadge.textContent = prefs.currency;
-            }
-            if (prefs.account) {
-                optAccountInput.value = prefs.account;
-                accountPillLabel.textContent = prefs.account;
-            }
-
-            function isStandaloneNow() {
-                return Boolean(
-                    (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
-                    window.navigator.standalone === true
-                );
-            }
-
-            function isInstalledFlag() {
-                try {
-                    return isStandaloneNow() || localStorage.getItem(INSTALLED_KEY) === "1";
-                } catch (_) {
-                    return isStandaloneNow();
-                }
-            }
-
-            function updateInstallButtonState() {
-                if (isStandaloneNow()) {
-                    try { localStorage.setItem(INSTALLED_KEY, "1"); } catch (_) {}
-                }
-                if (isInstalledFlag()) {
-                    installPwaBtn.classList.add("is-hidden-installed");
-                } else {
-                    installPwaBtn.classList.remove("is-hidden-installed");
-                }
-            }
-
-            try {
-                const iconSvg = encodeURIComponent(
-                    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="36" fill="#DC0A2D"/><circle cx="96" cy="96" r="56" fill="#F7F4EB" stroke="#18181B" stroke-width="10"/><line x1="40" y1="96" x2="152" y2="96" stroke="#18181B" stroke-width="10"/><circle cx="96" cy="96" r="18" fill="#FBC02D" stroke="#18181B" stroke-width="8"/></svg>'
-                );
-                const manifest = {
-                    name: "Skaner Pokemonów",
-                    short_name: "Skaner PKM",
-                    start_url: "./",
-                    scope: "./",
-                    display: "standalone",
-                    background_color: "#DC0A2D",
-                    theme_color: "#DC0A2D",
-                    icons: [{ src: `data:image/svg+xml,${iconSvg}`, sizes: "192x192", type: "image/svg+xml", purpose: "any maskable" }]
-                };
-                const mUrl = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" }));
-                const mLink = document.createElement("link");
-                mLink.rel = "manifest";
-                mLink.href = mUrl;
-                document.head.appendChild(mLink);
-
-                if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
-                    const swCode = `
-                        self.addEventListener("install", e => self.skipWaiting());
-                        self.addEventListener("activate", e => e.waitUntil(self.clients.claim()));
-                        self.addEventListener("fetch", event => {
-                            if (event.request.method !== "GET") return;
-                            event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
-                        });
-                    `;
-                    const swUrl = URL.createObjectURL(new Blob([swCode], { type: "application/javascript" }));
-                    navigator.serviceWorker.register(swUrl, { scope: "./" }).catch(() => {});
-                }
-            } catch (_) {}
-
-            window.addEventListener("beforeinstallprompt", (e) => {
-                if (isInstalledFlag()) return;
-                e.preventDefault();
-                deferredPrompt = e;
-                installPwaBtn.classList.remove("is-hidden-installed");
-            });
-
-            window.addEventListener("appinstalled", () => {
-                try { localStorage.setItem(INSTALLED_KEY, "1"); } catch (_) {}
-                deferredPrompt = null;
-                updateInstallButtonState();
-            });
-
-            installPwaBtn.addEventListener("click", async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const res = await deferredPrompt.userChoice;
-                    deferredPrompt = null;
-                    if (res && res.outcome === "accepted") {
-                        try { localStorage.setItem(INSTALLED_KEY, "1"); } catch (_) {}
-                        updateInstallButtonState();
-                        return;
-                    }
-                }
-                switchToTab("options");
-                alert("Aby zainstalować na telefonie: otwórz menu przeglądarki (⋮ lub Udostępnij) i wybierz „Dodaj do ekranu głównego”.");
-            });
-
-            markInstalledManualBtn.addEventListener("click", () => {
-                try { localStorage.setItem(INSTALLED_KEY, "1"); } catch (_) {}
-                updateInstallButtonState();
-            });
-
-            updateInstallButtonState();
-
-            setTimeout(() => {
-                openingFireLayer.classList.remove("active");
-            }, 1500);
-
-            scanCatButtons.forEach((btn) => {
-                btn.addEventListener("click", () => {
-                    scanCatButtons.forEach((b) => b.classList.remove("active"));
-                    btn.classList.add("active");
-                    activeScanCat = btn.getAttribute("data-scan-cat") || "all";
-                });
-            });
-
-            function switchToTab(tabName) {
-                tabButtons.forEach((btn) => {
-                    btn.classList.toggle("active", btn.getAttribute("data-tab") === tabName);
-                });
-                Object.keys(tabViews).forEach((key) => {
-                    tabViews[key].classList.toggle("active", key === tabName);
-                });
-            }
-
-            tabButtons.forEach((btn) => {
-                btn.addEventListener("click", () => {
-                    switchToTab(btn.getAttribute("data-tab"));
-                });
-            });
-
-            accountPillBtn.addEventListener("click", () => {
-                switchToTab("options");
-                optAccountInput.focus();
-            });
-
-            optCurrency.addEventListener("change", () => {
-                const c = optCurrency.value;
-                topCurrencyBadge.textContent = c;
-                savePrefs({ currency: c });
-                renderIndexAndCards();
-            });
-
-            optAccountInput.addEventListener("change", () => {
-                const val = optAccountInput.value.trim();
-                accountPillLabel.textContent = val || "Gość • Załóż konto";
-                savePrefs({ account: val });
-            });
-
-            function formatPrice(pln) {
-                const c = optCurrency.value || "PLN";
-                const mult = c === "EUR" ? 0.23 : c === "USD" ? 0.25 : 1;
-                return `${Math.max(5, Math.round(pln * mult))} ${c}`;
-            }
-
-            function renderIndexAndCards() {
-                const q = (indexSearchInput.value || "").trim().toLowerCase();
-                const list = catalogData.filter((item) => {
-                    const matchCat = activeIndexCat === "all" || item.cat === activeIndexCat;
-                    const matchQ = !q || item.name.toLowerCase().includes(q);
-                    return matchCat && matchQ;
-                });
-
-                indexCardsGrid.innerHTML = list.map((item) => `
-                    <div class="index-item">
-                        <div style="font-weight:900; font-size:12px;">${item.name}</div>
-                        <div style="font-size:10.5px; color:#52525B; font-weight:700;">${item.psa}</div>
-                        <div style="font-weight:900; font-size:12px; color:#991B1B;">${formatPrice(item.pln)}</div>
-                    </div>
-                `).join("");
-
-                cardsTabList.innerHTML = catalogData.map((item) => `
-                    <div class="paper-panel warm" style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <div style="font-weight:900; font-size:12.5px;">${item.name}</div>
-                            <div style="font-size:11px; color:#52525B; font-weight:700;">Stan: ${item.psa}</div>
-                        </div>
-                        <div style="font-weight:900; font-size:13px;">${formatPrice(item.pln)}</div>
-                    </div>
-                `).join("");
-            }
-
-            catPills.forEach((pill) => {
-                pill.addEventListener("click", () => {
-                    catPills.forEach((p) => p.classList.remove("active"));
-                    pill.classList.add("active");
-                    activeIndexCat = pill.getAttribute("data-index-cat") || "all";
-                    renderIndexAndCards();
-                });
-            });
-
-            indexSearchInput.addEventListener("input", renderIndexAndCards);
-            renderIndexAndCards();
-
-            function addCardToBinder(card) {
-                savedBinder.unshift({ ...card, time: new Date().toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) });
-                binderList.innerHTML = savedBinder.map((item) => `
-                    <div class="paper-panel warm" style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <div style="font-weight:900; font-size:12.5px;">${item.name} (${item.psa})</div>
-                            <div style="font-size:10.5px; color:#52525B; font-weight:700;">Dodano: ${item.time}</div>
-                        </div>
-                        <div style="font-weight:900; font-size:12.5px;">${formatPrice(item.pln)}</div>
-                    </div>
-                `).join("");
-            }
-
-            async function startCamera() {
-                isPhotoPreview = false;
-                previewImg.classList.add("is-hidden");
-                cameraVideo.classList.remove("is-hidden");
-                cameraIdleOverlay.classList.add("is-hidden");
-
-                if (currentStream) {
-                    currentStream.getTracks().forEach((tr) => tr.stop());
-                    currentStream = null;
-                }
-
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    cameraIdleOverlay.classList.remove("is-hidden");
-                    scannerStateLabel.textContent = "BRAK KAMERY";
-                    return;
-                }
-
-                try {
-                    currentStream = await navigator.mediaDevices.getUserMedia({
-                        video: { facingMode },
-                        audio: false
-                    });
-                    cameraVideo.srcObject = currentStream;
-                    await cameraVideo.play();
-                    scannerStateLabel.textContent = facingMode === "environment" ? "TYŁ AKTYWNY" : "PRZÓD AKTYWNY";
-                } catch (_) {
-                    cameraIdleOverlay.classList.remove("is-hidden");
-                    scannerStateLabel.textContent = "GOTOWY";
-                }
-            }
-
-            enableCameraBtn.addEventListener("click", startCamera);
-            switchCamBtn.addEventListener("click", () => {
-                facingMode = facingMode === "environment" ? "user" : "environment";
-                startCamera();
-            });
-
-            galleryUploadBtn.addEventListener("click", () => galleryInput.click());
-            galleryInput.addEventListener("change", (ev) => {
-                const file = ev.target.files && ev.target.files[0];
-                if (!file) return;
-                selectedFileText.textContent = file.name;
-                const reader = new FileReader();
-                reader.onload = () => {
-                    previewImg.onload = () => {
-                        isPhotoPreview = true;
-                        cameraVideo.classList.add("is-hidden");
-                        cameraIdleOverlay.classList.add("is-hidden");
-                        previewImg.classList.remove("is-hidden");
-                        evaluateScan();
-                    };
-                    previewImg.src = reader.result;
-                };
-                reader.readAsDataURL(file);
-            });
-
-            function checkFrameForCard(ctx, w, h) {
-                const px = ctx.getImageData(0, 0, w, h).data;
-                let edges = 0;
-                let colorful = 0;
-                let dark = 0;
-                let bright = 0;
-                const lum = new Float32Array(w * h);
-
-                for (let y = 0; y < h; y++) {
-                    for (let x = 0; x < w; x++) {
-                        const i = (y * w + x) * 4;
-                        const r = px[i], g = px[i + 1], b = px[i + 2];
-                        const l = 0.299 * r + 0.587 * g + 0.114 * b;
-                        lum[y * w + x] = l;
-                        if (l < 24) dark++;
-                        if (l > 220) bright++;
-                        if (Math.max(r, g, b) - Math.min(r, g, b) > 50 && l > 40 && l < 235) colorful++;
-                    }
-                }
-
-                for (let y = 1; y < h - 1; y++) {
-                    for (let x = 1; x < w - 1; x++) {
-                        const dx = Math.abs(lum[y * w + x + 1] - lum[y * w + x - 1]);
-                        const dy = Math.abs(lum[(y + 1) * w + x] - lum[(y - 1) * w + x]);
-                        if (dx + dy > 60) edges++;
-                    }
-                }
-
-                const total = w * h;
-                return {
-                    isCard:
-                        edges / total > 0.05 &&
-                        edges / total < 0.52 &&
-                        colorful / total > 0.09 &&
-                        dark / total < 0.78 &&
-                        bright / total < 0.72,
-                    edgesRatio: edges / total
-                };
-            }
-
-            function evaluateScan() {
-                const ctx = frameCanvas.getContext("2d");
-                ctx.clearRect(0, 0, frameCanvas.width, frameCanvas.height);
-
-                let ready = false;
-                if (isPhotoPreview && previewImg.complete && previewImg.naturalWidth > 0) {
-                    ctx.drawImage(previewImg, 0, 0, frameCanvas.width, frameCanvas.height);
-                    ready = true;
-                } else if (cameraVideo.readyState >= 2) {
-                    ctx.drawImage(cameraVideo, 0, 0, frameCanvas.width, frameCanvas.height);
-                    ready = true;
-                }
-
-                if (!ready) {
-                    cardHitBanner.classList.add("is-hidden");
-                    notPokemonAlert.classList.remove("is-hidden");
-                    return;
-                }
-
-                const res = checkFrameForCard(ctx, frameCanvas.width, frameCanvas.height);
-                if (!res.isCard) {
-                    cardHitBanner.classList.add("is-hidden");
-                    notPokemonAlert.classList.remove("is-hidden");
-                    return;
-                }
-
-                notPokemonAlert.classList.add("is-hidden");
-                const pool = activeScanCat === "all"
-                    ? catalogData
-                    : catalogData.filter((c) => c.cat === activeScanCat);
-                const list = pool.length ? pool : catalogData;
-                const picked = list[Math.abs(Math.floor(res.edgesRatio * 1000)) % list.length];
-                cardHitBanner.classList.remove("is-hidden");
-                cardHitBanner.textContent = `${picked.name} • ${picked.psa} • ~${formatPrice(picked.pln)}`;
-                addCardToBinder(picked);
-            }
-
-            scanCardBtn.addEventListener("click", evaluateScan);
-
-            sendChatBtn.addEventListener("click", () => {
-                const text = (chatInput.value || "").trim();
-                if (!text) return;
-                const userBubble = document.createElement("div");
-                userBubble.className = "paper-panel warm";
-                userBubble.style.fontSize = "12px";
-                userBubble.style.fontWeight = "700";
-                userBubble.textContent = `Ty: ${text}`;
-                chatMessages.appendChild(userBubble);
-
-                const botBubble = document.createElement("div");
-                botBubble.className = "crt-box";
-                botBubble.style.fontSize = "12px";
-                botBubble.textContent = "Skaner: Jeśli w wizjerze nie ma karty Pokémon, pokaże się komunikat TO NIE JEST KARTA POKEMON. Możesz też przejrzeć karty w zakładce INDEKS lub KARTY.";
-                chatMessages.appendChild(botBubble);
-                chatInput.value = "";
-            });
-        })();
-    </script>
-</body>
-</html>
