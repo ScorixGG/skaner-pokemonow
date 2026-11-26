@@ -928,8 +928,8 @@
 
     <script>
         (function () {
-            const INSTALLED_STORAGE_KEY = "skaner_pokemonow_installed_v3";
-            const PREFS_STORAGE_KEY = "skaner_pokemonow_prefs_v3";
+            const INSTALLED_STORAGE_KEY = "skaner_pokemonow_installed_v4";
+            const PREFS_STORAGE_KEY = "skaner_pokemonow_prefs_v4";
 
             const shell = document.getElementById("pokedexShell");
             const fireLayer = document.getElementById("openingFireLayer");
@@ -983,7 +983,9 @@
             }
 
             function savePrefs(partial) {
-                localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify({ ...getPrefs(), ...partial }));
+                try {
+                    localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify({ ...getPrefs(), ...partial }));
+                } catch (_) {}
             }
 
             const savedPrefs = getPrefs();
@@ -1024,12 +1026,18 @@
             }
 
             function isAppInstalled() {
-                return isRunningStandalone() || localStorage.getItem(INSTALLED_STORAGE_KEY) === "true";
+                try {
+                    return isRunningStandalone() || localStorage.getItem(INSTALLED_STORAGE_KEY) === "true";
+                } catch (_) {
+                    return isRunningStandalone();
+                }
             }
 
             function refreshInstallUi() {
                 if (isRunningStandalone()) {
-                    localStorage.setItem(INSTALLED_STORAGE_KEY, "true");
+                    try {
+                        localStorage.setItem(INSTALLED_STORAGE_KEY, "true");
+                    } catch (_) {}
                 }
                 if (isAppInstalled()) {
                     installPwaBtn.classList.add("is-hidden-installed");
@@ -1039,7 +1047,7 @@
                 }
             }
 
-            (function initPwaManifestAndSw() {
+            try {
                 const svgIcon = encodeURIComponent(
                     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="36" fill="#DC0A2D"/><circle cx="96" cy="96" r="56" fill="#F7F4EB" stroke="#18181B" stroke-width="10"/><line x1="40" y1="96" x2="152" y2="96" stroke="#18181B" stroke-width="10"/><circle cx="96" cy="96" r="18" fill="#FBC02D" stroke="#18181B" stroke-width="8"/></svg>'
                 );
@@ -1078,7 +1086,7 @@
                     const swUrl = URL.createObjectURL(new Blob([swScript], { type: "application/javascript" }));
                     navigator.serviceWorker.register(swUrl, { scope: "./" }).catch(() => {});
                 }
-            })();
+            } catch (_) {}
 
             window.addEventListener("beforeinstallprompt", (e) => {
                 if (isAppInstalled()) return;
@@ -1088,7 +1096,9 @@
             });
 
             window.addEventListener("appinstalled", () => {
-                localStorage.setItem(INSTALLED_STORAGE_KEY, "true");
+                try {
+                    localStorage.setItem(INSTALLED_STORAGE_KEY, "true");
+                } catch (_) {}
                 deferredInstallPrompt = null;
                 refreshInstallUi();
                 playSfx(660, 0.16, "triangle");
@@ -1108,7 +1118,9 @@
                     const outcomeObj = await deferredInstallPrompt.userChoice;
                     deferredInstallPrompt = null;
                     if (outcomeObj && outcomeObj.outcome === "accepted") {
-                        localStorage.setItem(INSTALLED_STORAGE_KEY, "true");
+                        try {
+                            localStorage.setItem(INSTALLED_STORAGE_KEY, "true");
+                        } catch (_) {}
                         refreshInstallUi();
                         return;
                     }
@@ -1121,7 +1133,9 @@
             });
 
             confirmInstalledBtn.addEventListener("click", () => {
-                localStorage.setItem(INSTALLED_STORAGE_KEY, "true");
+                try {
+                    localStorage.setItem(INSTALLED_STORAGE_KEY, "true");
+                } catch (_) {}
                 refreshInstallUi();
             });
 
