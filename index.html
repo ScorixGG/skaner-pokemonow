@@ -136,7 +136,6 @@
             margin: -8px 0;
         }
 
-        /* Ostry kontur płomienia w stylu anime */
         .anime-outer-flame {
             position: absolute;
             top: 50%;
@@ -161,7 +160,6 @@
             animation-delay: var(--f-delay, 0ms);
         }
 
-        /* Gorący rdzeń anime */
         .anime-inner-flame {
             position: absolute;
             top: 50%;
@@ -184,7 +182,6 @@
             animation-delay: var(--f-delay, 0ms);
         }
 
-        /* Iskry anime strzelające z języków ognia */
         .anime-spark {
             position: absolute;
             top: 50%;
@@ -395,7 +392,7 @@
         }
 
         /* =========================================================
-           GŁÓWNA TREŚĆ I ZAKŁADKI
+           GŁÓWNA TREŚĆ, KATEGORIE I ZAKŁADKI
            ========================================================= */
         .dex-main {
             flex: 1;
@@ -414,6 +411,34 @@
 
         .tab-view.active {
             display: flex;
+        }
+
+        .scan-categories-bar {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+            scrollbar-width: none;
+        }
+
+        .scan-categories-bar::-webkit-scrollbar { display: none; }
+
+        .scan-cat-btn {
+            flex-shrink: 0;
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 2.5px solid var(--ink-black);
+            background-color: var(--paper-cream);
+            color: var(--ink-black);
+            font-family: var(--font-ui);
+            font-size: 11px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px var(--ink-black);
+        }
+
+        .scan-cat-btn.active {
+            background-color: var(--led-amber);
         }
 
         .viewfinder-outer {
@@ -593,6 +618,18 @@
             text-transform: uppercase;
         }
 
+        .card-hit-banner {
+            background-color: var(--crt-bg);
+            color: #FACC15;
+            border: var(--border-w) solid var(--ink-black);
+            border-radius: 10px;
+            box-shadow: var(--shadow-hard);
+            padding: 12px;
+            font-weight: 900;
+            font-size: 13.5px;
+            line-height: 1.35;
+        }
+
         .paper-panel {
             background-color: var(--paper-cream);
             color: var(--ink-black);
@@ -652,7 +689,6 @@
             background-color: var(--led-amber);
         }
 
-        /* Dolny pasek 6 zakładek */
         .bottom-tabs-bar {
             position: fixed;
             bottom: 0;
@@ -750,6 +786,13 @@
             <main class="dex-main">
                 <!-- 1. ZAKŁADKA: SKANER -->
                 <section id="view-scanner" class="tab-view active">
+                    <div id="scanCategoriesBar" class="scan-categories-bar" role="tablist" aria-label="Kategorie skanowania">
+                        <button type="button" class="scan-cat-btn active" data-scan-cat="all">Wszystkie</button>
+                        <button type="button" class="scan-cat-btn" data-scan-cat="holo">Holo / EX</button>
+                        <button type="button" class="scan-cat-btn" data-scan-cat="vmax">V / VMAX</button>
+                        <button type="button" class="scan-cat-btn" data-scan-cat="trainers">Trenerzy / Energie</button>
+                    </div>
+
                     <div class="viewfinder-outer">
                         <div class="viewfinder-topbar">
                             <span class="mono">63×88 MM • <span id="topCurrencyBadge">PLN</span> &amp; PSA</span>
@@ -787,15 +830,7 @@
                     </div>
 
                     <div id="notPokemonAlert" class="not-card-banner is-hidden">TO NIE JEST KARTA POKEMON</div>
-
-                    <div class="paper-panel">
-                        <div class="crt-box">
-                            <div id="scanResultTitle" style="font-weight:900; font-size:14px; color:#FACC15;">Skaner gotowy</div>
-                            <div id="scanResultDesc" style="font-size:12px; color:#E4E4E7; margin-top:4px; line-height:1.35;">
-                                Włącz kamerę lub wgraj zdjęcie karty. Jeśli w kadrze nie będzie karty Pokémon, pojawi się komunikat TO NIE JEST KARTA POKEMON.
-                            </div>
-                        </div>
-                    </div>
+                    <div id="cardHitBanner" class="card-hit-banner is-hidden"></div>
                 </section>
 
                 <!-- 2. ZAKŁADKA: INDEKS -->
@@ -807,6 +842,7 @@
                             <button type="button" class="cat-pill active" data-index-cat="all">Wszystkie</button>
                             <button type="button" class="cat-pill" data-index-cat="holo">Holo / EX</button>
                             <button type="button" class="cat-pill" data-index-cat="vmax">V / VMAX</button>
+                            <button type="button" class="cat-pill" data-index-cat="trainers">Trenerzy / Energie</button>
                         </div>
                         <div id="indexCardsGrid" class="index-grid"></div>
                     </div>
@@ -909,6 +945,7 @@
             const installPwaBtn = document.getElementById("installPwaBtn");
             const markInstalledManualBtn = document.getElementById("markInstalledManualBtn");
 
+            const scanCatButtons = document.querySelectorAll(".scan-cat-btn");
             const tabButtons = document.querySelectorAll(".tab-btn");
             const tabViews = {
                 scanner: document.getElementById("view-scanner"),
@@ -931,8 +968,7 @@
             const scannerStateLabel = document.getElementById("scannerStateLabel");
 
             const notPokemonAlert = document.getElementById("notPokemonAlert");
-            const scanResultTitle = document.getElementById("scanResultTitle");
-            const scanResultDesc = document.getElementById("scanResultDesc");
+            const cardHitBanner = document.getElementById("cardHitBanner");
             const frameCanvas = document.getElementById("frameCanvas");
 
             const optCurrency = document.getElementById("optCurrency");
@@ -957,10 +993,13 @@
                 { name: "Umbreon VMAX", cat: "vmax", psa: "PSA 9 Mint", pln: 670 },
                 { name: "Rayquaza VMAX", cat: "vmax", psa: "PSA 10 Gem Mint", pln: 520 },
                 { name: "Blastoise ex", cat: "holo", psa: "PSA 8 NM-MT", pln: 165 },
-                { name: "Gengar VMAX", cat: "vmax", psa: "PSA 9 Mint", pln: 310 }
+                { name: "Gengar VMAX", cat: "vmax", psa: "PSA 9 Mint", pln: 310 },
+                { name: "Boss's Orders", cat: "trainers", psa: "PSA 10 Gem Mint", pln: 95 },
+                { name: "Lightning Energy Holo", cat: "trainers", psa: "PSA 9 Mint", pln: 65 }
             ];
 
             const savedBinder = [];
+            let activeScanCat = "all";
             let activeIndexCat = "all";
             let currentStream = null;
             let facingMode = "environment";
@@ -1017,7 +1056,6 @@
                 }
             }
 
-            // Manifest + Service Worker dla poprawnej instalacji PWA na HTTPS
             try {
                 const iconSvg = encodeURIComponent(
                     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="36" fill="#DC0A2D"/><circle cx="96" cy="96" r="56" fill="#F7F4EB" stroke="#18181B" stroke-width="10"/><line x1="40" y1="96" x2="152" y2="96" stroke="#18181B" stroke-width="10"/><circle cx="96" cy="96" r="18" fill="#FBC02D" stroke="#18181B" stroke-width="8"/></svg>'
@@ -1087,10 +1125,17 @@
 
             updateInstallButtonState();
 
-            // 1.5s anime ognie na start
             setTimeout(() => {
                 openingFireLayer.classList.remove("active");
             }, 1500);
+
+            scanCatButtons.forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    scanCatButtons.forEach((b) => b.classList.remove("active"));
+                    btn.classList.add("active");
+                    activeScanCat = btn.getAttribute("data-scan-cat") || "all";
+                });
+            });
 
             function switchToTab(tabName) {
                 tabButtons.forEach((btn) => {
@@ -1293,24 +1338,26 @@
                 }
 
                 if (!ready) {
+                    cardHitBanner.classList.add("is-hidden");
                     notPokemonAlert.classList.remove("is-hidden");
-                    scanResultTitle.textContent = "TO NIE JEST KARTA POKEMON";
-                    scanResultDesc.textContent = "Brak obrazu karty w wizjerze. Włącz kamerę lub wgraj zdjęcie z galerii.";
                     return;
                 }
 
                 const res = checkFrameForCard(ctx, frameCanvas.width, frameCanvas.height);
                 if (!res.isCard) {
+                    cardHitBanner.classList.add("is-hidden");
                     notPokemonAlert.classList.remove("is-hidden");
-                    scanResultTitle.textContent = "TO NIE JEST KARTA POKEMON";
-                    scanResultDesc.textContent = "Wykryty obraz nie wygląda jak karta Pokémon. Ustaw kartę w ramce 63×88 mm.";
                     return;
                 }
 
                 notPokemonAlert.classList.add("is-hidden");
-                const picked = catalogData[Math.abs(Math.floor(res.edgesRatio * 1000)) % catalogData.length];
-                scanResultTitle.textContent = `${picked.name} — ${picked.psa}`;
-                scanResultDesc.textContent = `Wykryto kartę Pokémon • Szacowana wartość: ${formatPrice(picked.pln)}`;
+                const pool = activeScanCat === "all"
+                    ? catalogData
+                    : catalogData.filter((c) => c.cat === activeScanCat);
+                const list = pool.length ? pool : catalogData;
+                const picked = list[Math.abs(Math.floor(res.edgesRatio * 1000)) % list.length];
+                cardHitBanner.classList.remove("is-hidden");
+                cardHitBanner.textContent = `${picked.name} • ${picked.psa} • ~${formatPrice(picked.pln)}`;
                 addCardToBinder(picked);
             }
 
